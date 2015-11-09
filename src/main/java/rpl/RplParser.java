@@ -26,6 +26,15 @@ public class RplParser {
 	@VisibleForTesting
 	Map<String, RplAssignment> getAssignments() { return assignments; }
 
+	public RplScope getResult() {
+		return new RplScope(new LinkedHashMap<>(assignments));
+	}
+
+	@VisibleForTesting
+	Map<String, RplAssignment> getAssignments() {
+		return assignments;
+	}
+
 	/*
 	 * Grammar:
 	 * 
@@ -222,12 +231,11 @@ public class RplParser {
 	private RplExpressionNode parseArithExpr() throws IOException {
 		RplExpressionNode expression = parseTerm();
 		int t = tokenizer.nextToken();
-		if (t == '+' || t == '-') {
-			return createBinaryOperatorNode(expression, t).withRight(parseTerm());
-		} else {
-			tokenizer.pushback();
-			return expression;
+		while (t == '+' || t == '-') {
+			expression = createBinaryOperatorNode(expression, t).withRight(parseTerm());
 		}
+		tokenizer.pushback();
+		return expression;
 	}
 
 	/*
@@ -290,7 +298,11 @@ public class RplParser {
 			RplConstantNode node = new RplConstantNode();
 			node.setLocation(this);
 			node.setValue(tokenizer.getTokenValue());
+<<<<<<< d722bb1fe7ef5e8e489690db62c1dc6ade72f96c
 			expression= node;
+=======
+			expression = node;
+>>>>>>> work in progress
 		} else {
 			throw syntaxError(String.format("unexpected token %c", (char) t));
 		}

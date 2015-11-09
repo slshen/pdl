@@ -4,7 +4,10 @@
 
 ENV = "dev"
 
-template DB {
+IS_PROD = ENV ~= "^prod"
+
+// possible future extension
+template DB_TEMPLATE {
 	TYPE = "oracle"
 	PORT = 1521
 	if (TYPE == "oracle") {
@@ -13,7 +16,9 @@ template DB {
 
 }
 
-LC_DB = template(DB)
+
+LC_DB_ follows DB_TEMPLATE
+
 LC_DB_HOST = "usdevdb01.tlcinternal.com"
 
 if (ENV == "dev") {

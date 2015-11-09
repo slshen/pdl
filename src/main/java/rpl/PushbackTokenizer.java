@@ -1,10 +1,6 @@
 package rpl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
 class PushbackTokenizer {
 	private static class State {
@@ -45,8 +41,8 @@ class PushbackTokenizer {
 	
 	void pushback() {
 		index = prev(index);
-		if (buffer[index] == null) {
-			throw new IllegalStateException("cannot pusback past start");
+		if (buffer[index] == null || index == limit) {
+			throw new IllegalStateException("cannot pusback past start or more than 16 tokens");
 		}
 	}
 	

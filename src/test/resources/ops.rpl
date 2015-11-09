@@ -1,2 +1,4 @@
-Y = "world"
-X = "hello, " + Y
+SUBJECT = "world"
+GREETING = "hello"
+SAY = GREETING + " " + SUBJECT
+SAY_2 = GREETING + " " + GREETING + " " + SUBJECT
