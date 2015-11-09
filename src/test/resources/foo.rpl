@@ -1,0 +1,10 @@
+LC_ENV = "prod"
+LC_JDK_VERSION = "1.8"
+
+$extensions = "rpl.test.Extensions.find_java_version"
+
+if (LC_JDK_VERSION) {
+  LC_JAVA = call $extensions(LC_JDK_VERSION)
+  
+}
+
