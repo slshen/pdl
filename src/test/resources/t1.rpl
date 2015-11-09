@@ -1,0 +1,23 @@
+//# comment
+
+/* also block comments */
+
+ENV = "dev"
+
+template DB {
+	TYPE = "oracle"
+	PORT = 1521
+	if (TYPE == "oracle") {
+	   URL = "jdbc:oracle:thin:@" + HOST + ":" + PORT + ":" + SID
+	}
+
+}
+
+LC_DB = template(DB)
+LC_DB_HOST = "usdevdb01.tlcinternal.com"
+
+if (ENV == "dev") {
+	DB_NUMBER = 1
+	DB_HOST = "devdb01"
+	DB_SID = "dev" + DB_NUMBER
+}

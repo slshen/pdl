@@ -2,7 +2,9 @@ package rpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 class PushbackTokenizer {
 	private static class State {
@@ -18,40 +20,51 @@ class PushbackTokenizer {
 		final int column;
 	}
 	private final Tokenizer tokenizer;
-	private State top;
-	private final List<State> stack = new ArrayList<>();
+	private final State[] buffer = new State[16];
+	private int index = 0, limit = 1;
 
 	public PushbackTokenizer(Tokenizer tokenizer) {
 		this.tokenizer = tokenizer;
+		buffer[index] = new State(tokenizer);
 	}
 	
+	private int next(int i) { return i == buffer.length - 1 ? 0 : i + 1; }
+	private int prev(int i) { return i == 0 ? buffer.length - 1 : i - 1; }
+	
 	int nextToken() throws IOException {
-		if (!stack.isEmpty()) {
-			top = stack.remove(stack.size()-1);
+		if (next(index) == limit) {
+			tokenizer.nextToken();
+			index = next(index);
+			limit = next(limit);
+			buffer[index] = new State(tokenizer);
 		} else {
-			top = new State(tokenizer);
+			index = next(index);
 		}
 		return getToken();
 	}
 	
+	void pushback() {
+		index = prev(index);
+		if (buffer[index] == null) {
+			throw new IllegalStateException("cannot pusback past start");
+		}
+	}
+	
 	int getToken() {
-		return top != null ? top.token : 0;
+		return buffer[index].token;
 	}
 	
 	String getTokenValue() {
-		return top != null ? top.tokenValue : null;
+		return buffer[index].tokenValue;
 	}
 	
 	int getLine() {
-		return top != null ? top.line : 0;
-	}
-	
-	void pushback() {
-		stack.add(top);
+		return buffer[index].line;
 	}
 
 	int getColumn() {
-		return top != null ? top.column : 0;
+		return buffer[index].column;
 	}
+
 
 }

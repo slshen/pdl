@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RplInvocationNode extends RplExpressionNode {
-	
+
 	private boolean constructor;
-	private String targetName;
+	private RplExpressionNode target;
 	private final List<RplExpressionNode> arguments = new ArrayList<>();
 
 	public boolean isConstructor() {
@@ -17,12 +17,12 @@ public class RplInvocationNode extends RplExpressionNode {
 		this.constructor = constructor;
 	}
 
-	public String getTargetName() {
-		return targetName;
+	public RplExpressionNode getTarget() {
+		return target;
 	}
 
-	public void setTargetName(String targetName) {
-		this.targetName = targetName;
+	public void setTarget(RplExpressionNode target) {
+		this.target = target;
 	}
 
 	public List<RplExpressionNode> getArguments() {
@@ -30,8 +30,8 @@ public class RplInvocationNode extends RplExpressionNode {
 	}
 
 	@Override
-	public Object accept(RplExpressionNodeVisitor visitor) {
-		return visitor.visit(this);
+	public void accept(RplExpressionNodeVisitor visitor) {
+		visitor.visit(this);
 	}
 
 }

@@ -20,8 +20,9 @@ public class RplBinaryOperatorNode extends RplExpressionNode {
 		return right;
 	}
 
-	public void setRight(RplExpressionNode right) {
+	public RplBinaryOperatorNode withRight(RplExpressionNode right) {
 		this.right = right;
+		return this;
 	}
 
 	public int getOperator() {
@@ -33,8 +34,8 @@ public class RplBinaryOperatorNode extends RplExpressionNode {
 	}
 
 	@Override
-	public Object accept(RplExpressionNodeVisitor visitor) {
-		return visitor.visit(this);
+	public void accept(RplExpressionNodeVisitor visitor) {
+		visitor.visit(this);
 	}
 
 }

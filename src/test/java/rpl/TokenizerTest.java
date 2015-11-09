@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TokenizerTest {
@@ -50,7 +49,7 @@ public class TokenizerTest {
 		Assert.assertEquals(value, tokenizer.getTokenValue());
 	}
 
-	private Tokenizer createTokenizer(String s) {
+	public static Tokenizer createTokenizer(String s) {
 		return new Tokenizer(new StringReader(s));
 	}
 

@@ -17,13 +17,14 @@ public class RplUnaryOperatorNode extends RplExpressionNode {
 		return target;
 	}
 
-	public void setTarget(RplExpressionNode target) {
+	public RplUnaryOperatorNode withTarget(RplExpressionNode target) {
 		this.target = target;
+		return this;
 	}
 
 	@Override
-	public Object accept(RplExpressionNodeVisitor visitor) {
-		return visitor.visit(this);
+	public void accept(RplExpressionNodeVisitor visitor) {
+		visitor.visit(this);
 	}
 
 }

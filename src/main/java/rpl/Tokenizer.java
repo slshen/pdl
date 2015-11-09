@@ -47,6 +47,9 @@ class Tokenizer {
 					if (ch == '*') {
 						state = S_BLOCK_COMMENT;
 						break;
+					} else if (ch == '/') {
+						state = S_LINE_COMMENT;
+						break;
 					}
 					unread(ch);
 				}
@@ -304,11 +307,11 @@ class Tokenizer {
 	}
 
 	int getLine() {
-		return line;
+		return line + 1;
 	}
 
 	int getColumn() {
-		return col[line % col.length];
+		return col[line % col.length] + 1;
 	}
 
 	String getTokenValue() {
@@ -325,7 +328,7 @@ class Tokenizer {
 			return ch;
 		if (ch == '\n') {
 			++line;
-			col[line % col.length] = 0;
+			col[line % col.length] = 1;
 		} else {
 			++col[line % col.length];
 		}

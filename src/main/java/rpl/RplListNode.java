@@ -11,8 +11,8 @@ public class RplListNode extends RplExpressionNode {
 	}
 
 	@Override
-	public Object accept(RplExpressionNodeVisitor visitor) {
-		return visitor.visit(this);
+	public void accept(RplExpressionNodeVisitor visitor) {
+		visitor.visit(this);
 	}
 
 	

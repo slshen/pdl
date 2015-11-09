@@ -23,19 +23,10 @@ public class RplConstantNode extends RplExpressionNode {
 	}
 
 	@Override
-	public Object accept(RplExpressionNodeVisitor visitor) {
-		return visitor.visit(this);
+	public void accept(RplExpressionNodeVisitor visitor) {
+		visitor.visit(this);
 	}
 
-	public boolean isTrue() {
-		if (value != null && value.length() > 0) {
-			if (value.equalsIgnoreCase("true")) {
-				return true;
-			}
-			BigDecimal n = asNumber();
-			return n != null && n.compareTo(BigDecimal.ZERO) != 0;
-		}
-		return false;
-	}
+
 
 }

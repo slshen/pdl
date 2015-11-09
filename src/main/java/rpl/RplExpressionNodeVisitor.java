@@ -2,24 +2,25 @@ package rpl;
 
 public class RplExpressionNodeVisitor {
 
-	public Object visit(RplInvocationNode rplInvocationNode) {
-		return null;
+	public void visit(RplInvocationNode rplInvocationNode) {
 	}
 
-	public Object visit(RplConstantNode rplConstantNode) {
-		return null;
+	public void visit(RplConstantNode rplConstantNode) {
 	}
 
-	public Object visit(RplBinaryOperatorNode rplBinaryOperatorNode) {
-		return null;
+	public void visit(RplBinaryOperatorNode rplBinaryOperatorNode) {
 	}
 
-	public Object visit(RplUnaryOperatorNode rplUnaryOperatorNode) {
-		return null;
+	public void visit(RplUnaryOperatorNode rplUnaryOperatorNode) {
 	}
 
-	public Object visit(RplListNode rplListNode) {
-		return null;
+	public void visit(RplListNode rplListNode) {
+	}
+
+	public void visit(RplGetValueNode rplGetValueNode) {
+	}
+
+	public void visit(RplAttributeNode rplAttributeNode) {
 	}
 
 }
