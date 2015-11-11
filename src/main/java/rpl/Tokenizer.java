@@ -6,8 +6,12 @@ import java.io.Reader;
 import java.math.BigInteger;
 
 class Tokenizer {
+	/*
+	 * token definitions 
+	 */
 	static final int EOF = -1, ID = -2, STRING = -3, HERE = -4, INTERP_STRING = -5, NUMBER = -6, L_OR = -7, L_AND = -8,
 			EQ = -9, L_SHIFT = -10, R_SHIFT = -11, LE = -12, GE = -13, COLON_EQ = -14, PLUS_EQ = -15, NEQ = -16;
+	// internal states
 	private static final int S_INIT = 0, S_TRIPLE_QUOTE_STRING = 1, S_SINGLE_QUOTE_STRING = '\'',
 			S_DOUBLE_QUOTE_STRING = '\"', S_NUMBER = 2, S_FRAC = 3, S_ID = 4, S_BINARY = 5, S_EXP = 6, S_EXP2 = 7,
 			S_LINE_COMMENT = 8, S_BLOCK_COMMENT = 9, S_HEX = 10;

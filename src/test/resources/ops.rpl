@@ -1,4 +1,16 @@
+SAY = GREETING + ", " + SUBJECT
 SUBJECT = "world"
 GREETING = "hello"
-SAY = GREETING + " " + SUBJECT
 SAY_2 = GREETING + " " + GREETING + " " + SUBJECT
+
+if (ENV == "dev") {
+	GREETING = "shouting hello"
+}
+
+if (ENV == "prod") {
+	GREETING = "shh, quiet pleaes"
+}
+
+if (BRANCH) {
+	GREETING += BRANCH
+}

@@ -4,6 +4,8 @@ public class RplBinaryOperatorNode extends RplExpressionNode {
 	public static final int L_OR = Tokenizer.L_OR, L_AND = Tokenizer.L_AND,
 			LE = Tokenizer.LE, GE = Tokenizer.GE, L_SHIFT = Tokenizer.L_SHIFT,
 			R_SHIFT = Tokenizer.R_SHIFT;
+
+	public static final int EQ = Tokenizer.EQ;
 	
 	private RplExpressionNode left, right;
 	private int operator;

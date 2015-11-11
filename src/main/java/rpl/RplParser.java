@@ -18,21 +18,14 @@ public class RplParser {
 
 	public RplParser() {
 	}
-	
-	public RplScope getResult() {
-		return new RplScope(new LinkedHashMap<>(assignments));
-	}
-	
-	@VisibleForTesting
-	Map<String, RplAssignment> getAssignments() { return assignments; }
-
-	public RplScope getResult() {
-		return new RplScope(new LinkedHashMap<>(assignments));
-	}
 
 	@VisibleForTesting
 	Map<String, RplAssignment> getAssignments() {
 		return assignments;
+	}
+
+	public RplScope getResult() {
+		return new RplScope(new LinkedHashMap<>(assignments));
 	}
 
 	/*
@@ -123,11 +116,10 @@ public class RplParser {
 	 */
 	private RplExpressionNode parseExpression() throws IOException {
 		RplExpressionNode expression = parseAndTest();
-		if (tokenizer.nextToken() == Tokenizer.L_OR) {
+		while (tokenizer.nextToken() == Tokenizer.L_OR) {
 			expression = createBinaryOperatorNode(expression, Tokenizer.L_OR).withRight(parseExpression());
-		} else {
-			tokenizer.pushback();
 		}
+		tokenizer.pushback();
 		return expression;
 	}
 
@@ -177,12 +169,12 @@ public class RplParser {
 	private RplExpressionNode parseComparison() throws IOException {
 		RplExpressionNode expression = parseExpr();
 		int t = tokenizer.nextToken();
-		if (t == Tokenizer.EQ || t == Tokenizer.GE || t == Tokenizer.LE || t == Tokenizer.NEQ) {
-			return createBinaryOperatorNode(expression, t).withRight(parseComparison());
-		} else {
-			tokenizer.pushback();
-			return expression;
+		while (t == Tokenizer.EQ || t == Tokenizer.GE || t == Tokenizer.LE || t == Tokenizer.NEQ) {
+			expression = createBinaryOperatorNode(expression, t).withRight(parseComparison());
+			t = tokenizer.nextToken();
 		}
+		tokenizer.pushback();
+		return expression;
 	}
 
 	/*
@@ -190,12 +182,11 @@ public class RplParser {
 	 */
 	private RplExpressionNode parseExpr() throws IOException {
 		RplExpressionNode expression = parseAndExpr();
-		if (tokenizer.nextToken() == '^') {
-			return createBinaryOperatorNode(expression, '^').withRight(parseAndExpr());
-		} else {
-			tokenizer.pushback();
-			return expression;
+		while (tokenizer.nextToken() == '^') {
+			expression = createBinaryOperatorNode(expression, '^').withRight(parseAndExpr());
 		}
+		tokenizer.pushback();
+		return expression;
 	}
 
 	/*
@@ -203,12 +194,11 @@ public class RplParser {
 	 */
 	private RplExpressionNode parseAndExpr() throws IOException {
 		RplExpressionNode expression = parseShiftExpr();
-		if (tokenizer.nextToken() == '&') {
-			return createBinaryOperatorNode(expression, '&').withRight(parseShiftExpr());
-		} else {
-			tokenizer.pushback();
-			return expression;
+		while (tokenizer.nextToken() == '&') {
+			expression = createBinaryOperatorNode(expression, '&').withRight(parseShiftExpr());
 		}
+		tokenizer.pushback();
+		return expression;
 	}
 
 	/*
@@ -217,12 +207,12 @@ public class RplParser {
 	private RplExpressionNode parseShiftExpr() throws IOException {
 		RplExpressionNode expression = parseArithExpr();
 		int t = tokenizer.nextToken();
-		if (t == Tokenizer.L_SHIFT || t == Tokenizer.R_SHIFT) {
-			return createBinaryOperatorNode(expression, t).withRight(parseArithExpr());
-		} else {
-			tokenizer.pushback();
-			return expression;
+		while (t == Tokenizer.L_SHIFT || t == Tokenizer.R_SHIFT) {
+			expression = createBinaryOperatorNode(expression, t).withRight(parseArithExpr());
+			t = tokenizer.nextToken();
 		}
+		tokenizer.pushback();
+		return expression;
 	}
 
 	/*
@@ -233,6 +223,7 @@ public class RplParser {
 		int t = tokenizer.nextToken();
 		while (t == '+' || t == '-') {
 			expression = createBinaryOperatorNode(expression, t).withRight(parseTerm());
+			t = tokenizer.nextToken();
 		}
 		tokenizer.pushback();
 		return expression;
@@ -244,12 +235,12 @@ public class RplParser {
 	private RplExpressionNode parseTerm() throws IOException {
 		RplExpressionNode expression = parseFactor();
 		int t = tokenizer.nextToken();
-		if (t == '*' || t == '/' || t == '%') {
-			return createBinaryOperatorNode(expression, t).withRight(parseFactor());
-		} else {
-			tokenizer.pushback();
-			return expression;
+		while (t == '*' || t == '/' || t == '%') {
+			expression = createBinaryOperatorNode(expression, t).withRight(parseFactor());
+			t = tokenizer.nextToken();
 		}
+		tokenizer.pushback();
+		return expression;
 	}
 
 	/*
@@ -298,11 +289,7 @@ public class RplParser {
 			RplConstantNode node = new RplConstantNode();
 			node.setLocation(this);
 			node.setValue(tokenizer.getTokenValue());
-<<<<<<< d722bb1fe7ef5e8e489690db62c1dc6ade72f96c
-			expression= node;
-=======
 			expression = node;
->>>>>>> work in progress
 		} else {
 			throw syntaxError(String.format("unexpected token %c", (char) t));
 		}

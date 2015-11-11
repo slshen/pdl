@@ -12,11 +12,19 @@ public class RplScopeTest extends RplScopeTestFixture {
 	public void testOps() throws IOException {
 		RplParser parser = parseFixtures("ops.rpl");
 		RplScope scope = parser.getResult();
-		Assert.assertEquals("hello, world", scope.get("X"));
-		parser.parse(new StringReader("Y = 'universe'"), "in");
+		Assert.assertEquals("hello, world", scope.get("SAY"));
+		parser.parse(new StringReader("SUBJECT = 'universe'"), "in");
 		scope = parser.getResult();
-		Assert.assertEquals("universe", scope.get("Y"));
-		Assert.assertEquals("hello, universe", scope.get("X"));
+		Assert.assertEquals("universe", scope.get("SUBJECT"));
+		Assert.assertEquals("hello, universe", scope.get("SAY"));
+	}
+	
+	@Test
+	public void testIf() throws IOException {
+		RplParser parser = parseFixtures("ops.rpl");
+		parser.parse(new StringReader("ENV = 'dev'"), "in");
+		RplScope scope = parser.getResult();
+		Assert.assertEquals("shouting hello, world", scope.get("SAY"));
 	}
 
 }

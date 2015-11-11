@@ -130,6 +130,22 @@ public class RplScope {
 				}
 				break;
 			}
+			case RplBinaryOperatorNode.EQ: {
+				if (leftValue == rightValue) {
+					result = true;
+				} else if (leftValue != null) {
+					BigDecimal leftNumber = asBigDecimal(leftValue);
+					BigDecimal rightNumber;
+					if (leftNumber != null && ((rightNumber = asBigDecimal(rightValue)) != null)) {
+						result = leftNumber.compareTo(rightNumber) == 0;
+					} else {
+						result = leftValue.equals(rightValue);
+					}
+				} else {
+					result = false;
+				}
+				break;
+			}
 			case '-':
 			case '*':
 			case '/':
@@ -184,6 +200,9 @@ public class RplScope {
 
 	public boolean isTrue(Object value) {
 		if (value != null) {
+			if (value == Boolean.TRUE) {
+				return true;
+			}
 			if (value instanceof String) {
 				String s = (String) value;
 				if (s.equalsIgnoreCase("true")) {
@@ -211,13 +230,17 @@ public class RplScope {
 
 	public Object get(String name) {
 		RplAssignment assignment = assignments.get(name);
+		if (assignment == null) {
+			return null;
+		}
 		Object result = null;
-		ListIterator<RplConditionalAssignment> iter = assignment.getAssignments()
-				.listIterator(assignment.getAssignments().size());
-		assignment: while (iter.hasPrevious()) {
-			// NB - evaluate in reverse order so that later sources have
-			// precedence
-			RplConditionalAssignment conditionalAssignment = iter.previous();
+		ListIterator<RplConditionalAssignment> iter = assignment.getAssignments().listIterator();
+		assignment: while (iter.hasNext()) {
+			/*
+			 * XXX - should check for override assignments in reverse order so
+			 * later sources have precedence
+			 */
+			RplConditionalAssignment conditionalAssignment = iter.next();
 			for (RplExpressionNode cond : conditionalAssignment.getConditions()) {
 				if (!isTrue(new Evaluator().eval(cond))) {
 					continue assignment;
