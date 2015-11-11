@@ -109,10 +109,23 @@ public class RplParser {
 		assignment.getAssignments().add(cond);
 	}
 
+	private RplBinaryOperatorNode createBinaryOperatorNode(RplExpressionNode left, int operator) throws IOException {
+		RplBinaryOperatorNode op = new RplBinaryOperatorNode();
+		op.setLocation(this);
+		op.setLeft(left);
+		op.setOperator(operator);
+		return op;
+	}
+
+	private RplUnaryOperatorNode createUnaryOperatorNode(int operator) {
+		RplUnaryOperatorNode node = new RplUnaryOperatorNode();
+		node.setLocation(this);
+		node.setOperator(operator);
+		return node;
+	}
+
 	/*
-	 * expression = and_test | expression "||" and_test
-	 *
-	 * expr: xor_expr ('|' xor_expr)*
+	 * expression = and_test ('||' and_test)*
 	 */
 	private RplExpressionNode parseExpression() throws IOException {
 		RplExpressionNode expression = parseAndTest();
@@ -123,16 +136,8 @@ public class RplParser {
 		return expression;
 	}
 
-	private RplBinaryOperatorNode createBinaryOperatorNode(RplExpressionNode left, int operator) throws IOException {
-		RplBinaryOperatorNode op = new RplBinaryOperatorNode();
-		op.setLocation(this);
-		op.setLeft(left);
-		op.setOperator(operator);
-		return op;
-	}
-
 	/*
-	 * and_test = not_test | and_test "&&" not_test
+	 * and_test = not_test ("&&" not_test)*
 	 */
 	private RplExpressionNode parseAndTest() throws IOException {
 		RplExpressionNode expression = parseNotTest();
@@ -156,20 +161,14 @@ public class RplParser {
 		}
 	}
 
-	private RplUnaryOperatorNode createUnaryOperatorNode(int operator) {
-		RplUnaryOperatorNode node = new RplUnaryOperatorNode();
-		node.setLocation(this);
-		node.setOperator(operator);
-		return node;
-	}
-
 	/*
 	 * comparison: expr (comp_op expr)*
 	 */
 	private RplExpressionNode parseComparison() throws IOException {
 		RplExpressionNode expression = parseExpr();
 		int t = tokenizer.nextToken();
-		while (t == Tokenizer.EQ || t == Tokenizer.GE || t == Tokenizer.LE || t == Tokenizer.NEQ) {
+		while (t == Tokenizer.EQ || t == Tokenizer.GE || t == Tokenizer.LE || t == Tokenizer.NEQ || t == '>'
+				|| t == '<') {
 			expression = createBinaryOperatorNode(expression, t).withRight(parseComparison());
 			t = tokenizer.nextToken();
 		}
@@ -257,33 +256,36 @@ public class RplParser {
 	}
 
 	/*
-	 * primary: atom | attributeref | call | '(' expression ')'
+	 * primary: atom trailer*
 	 * 
-	 * atom: id | constant
+	 * atom: ('(' expression ')' | '[' [listmaker] ']' | '{' [dictorsetmaker]
+	 * '}' | id | NUMBER | STRING+)
 	 * 
-	 * attributeref: primary "." id
-	 * 
-	 * call = "call" string "(" argument_list ")" | "new" string "("
-	 * argument_list ")"
+	 * trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
 	 * 
 	 * argument_list = expression ("," expression)*
 	 */
 	private RplExpressionNode parsePrimary() throws IOException {
 		int t = tokenizer.nextToken();
 		RplExpressionNode expression;
-		if (t == Tokenizer.ID) {
-			if (tokenizer.getTokenValue().equals("call") || tokenizer.getTokenValue().equals("new")) {
-				expression = parseInvocation();
+		if (t == '(') {
+			expression = parseExpression();
+			if (tokenizer.nextToken() != ')') {
+				throw syntaxError("invalid parenthesized expression");
+			}
+		} else if (t == '[') {
+			expression = parseList();
+			if (tokenizer.nextToken() != ']') {
+				throw syntaxError("invalid list expression");
+			}
+		} else if (t == Tokenizer.ID) {
+			if (tokenizer.getTokenValue().equals("new")) {
+				throw new UnsupportedOperationException();
 			} else {
 				RplGetValueNode node = new RplGetValueNode();
 				node.setLocation(this);
 				node.setName(tokenizer.getTokenValue());
 				expression = node;
-			}
-		} else if (t == '(') {
-			expression = parseExpression();
-			if (tokenizer.nextToken() != ')') {
-				throw syntaxError("invalid parenthesized expression");
 			}
 		} else if (t == Tokenizer.NUMBER || t == Tokenizer.STRING || t == Tokenizer.INTERP_STRING) {
 			RplConstantNode node = new RplConstantNode();
@@ -303,10 +305,19 @@ public class RplParser {
 			node.setBase(expression);
 			node.setAttributeName(tokenizer.getTokenValue());
 			expression = node;
+		} else if (t == '(') {
+			throw new UnsupportedOperationException();
+		} else if (t == '[') {
+			throw new UnsupportedOperationException();
 		} else {
 			tokenizer.pushback();
 		}
 		return expression;
+	}
+
+	private RplExpressionNode parseList() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	private RplExpressionNode parseInvocation() throws IOException {
