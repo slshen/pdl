@@ -1,8 +1,11 @@
 package rpl;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,12 +49,10 @@ public class RplScope {
 			Object value = rplUnaryOperatorNode.getTarget().getData();
 			switch (rplUnaryOperatorNode.getOperator()) {
 			case '+':
-			case '-':
-			case '~':
+			case '-': {
 				BigDecimal n = asBigDecimal(value);
-				if (n == null) {
-					throw evalException(rplUnaryOperatorNode, "argument is not a number");
-				}
+				if (n == null)
+					n = BigDecimal.ZERO;
 				switch (rplUnaryOperatorNode.getOperator()) {
 				case '+':
 					rplUnaryOperatorNode.setData(n);
@@ -59,15 +60,17 @@ public class RplScope {
 				case '-':
 					rplUnaryOperatorNode.setData(BigDecimal.ZERO.subtract(n));
 					break;
-				case '~':
-					byte[] bytes = n.toBigIntegerExact().toByteArray();
-					for (int i = 0; i < bytes.length; i++) {
-						bytes[i] = (byte) ~bytes[i];
-					}
-					rplUnaryOperatorNode.setData(new BigInteger(bytes));
-					break;
 				}
 				break;
+			}
+			case '~': {
+				BigInteger n = asBigInteger(value);
+				if (n == null)
+					rplUnaryOperatorNode.setData(BigInteger.valueOf(~0));
+				else
+					rplUnaryOperatorNode.setData(n.not());
+			}
+
 			case '!':
 				if (isTrue(value)) {
 					rplUnaryOperatorNode.setData("false");
@@ -120,10 +123,14 @@ public class RplScope {
 				BigDecimal rightNumber = asBigDecimal(rightValue);
 				if (leftNumber != null && rightNumber != null) {
 					result = leftNumber.add(rightNumber);
-				} else if (leftValue instanceof Collection<?> && rightValue instanceof Collection<?>) {
+				} else if (leftValue instanceof Collection<?>) {
 					List<Object> list = new ArrayList<>();
 					list.addAll((Collection<?>) leftValue);
-					list.addAll((Collection<?>) rightValue);
+					if (rightValue instanceof Collection<?>) {
+						list.addAll((Collection<?>) rightValue);
+					} else {
+						list.add(rightValue);
+					}
 					result = list;
 				} else {
 					result = stringValueOf(leftValue) + stringValueOf(rightValue);
@@ -146,21 +153,87 @@ public class RplScope {
 				}
 				break;
 			}
-			case '-':
+			case '-': {
+				if (leftValue instanceof Collection<?>) {
+					List<Object> list = new ArrayList<>();
+					list.addAll((Collection<?>) leftValue);
+					if (rightValue instanceof Collection<?>) {
+						list.removeAll((Collection<?>) rightValue);
+					} else {
+						list.remove(rightValue);
+					}
+					result = list;
+				} else {
+					BigDecimal leftNumber = asBigDecimal(leftValue);
+					BigDecimal rightNumber = asBigDecimal(rightValue);
+					if (leftNumber == null)
+						leftNumber = BigDecimal.ZERO;
+					if (rightNumber == null)
+						rightNumber = BigDecimal.ZERO;
+					result = leftNumber.subtract(rightNumber);
+				}
+				break;
+			}
 			case '*':
-			case '/':
+			case '/': {
+				BigDecimal leftNumber = asBigDecimal(leftValue);
+				BigDecimal rightNumber = asBigDecimal(rightValue);
+				if (leftNumber == null)
+					leftNumber = BigDecimal.ZERO;
+				if (rightNumber == null)
+					rightNumber = BigDecimal.ZERO;
+				switch (rplBinaryOperatorNode.getOperator()) {
+				case '*':
+					result = leftNumber.multiply(rightNumber);
+					break;
+				case '/':
+					result = leftNumber.divide(rightNumber, MathContext.DECIMAL64);
+					break;
+				}
+				break;
+			}
 			case '%':
 			case '^':
 			case '|':
 			case '&':
 			case RplBinaryOperatorNode.L_SHIFT:
-			case RplBinaryOperatorNode.R_SHIFT:
+			case RplBinaryOperatorNode.R_SHIFT: {
+				BigInteger leftNumber = asBigInteger(leftValue);
+				BigInteger rightNumber = asBigInteger(rightValue);
+				if (leftNumber == null)
+					leftNumber = BigInteger.ZERO;
+				if (rightNumber == null)
+					rightNumber = BigInteger.ZERO;
+				switch (rplBinaryOperatorNode.getOperator()) {
+				case '%':
+					result = leftNumber.mod(rightNumber);
+					break;
+				case '^':
+					result = leftNumber.xor(rightNumber);
+					break;
+				case '|':
+					result = leftNumber.or(rightNumber);
+					break;
+				case '&':
+					result = leftNumber.and(rightNumber);
+					break;
+				case RplBinaryOperatorNode.L_SHIFT:
+					result = leftNumber.shiftLeft(rightNumber.intValue());
+					break;
+				case RplBinaryOperatorNode.R_SHIFT:
+					result = leftNumber.shiftRight(rightNumber.intValue());
+					break;
+				}
+				break;
+			}
 			case RplBinaryOperatorNode.L_AND:
 			case RplBinaryOperatorNode.L_OR:
-				throw new UnsupportedOperationException();
+				// in both cases, the shortcut preVisit has done the conditional
+				// eval
+				result = rightValue;
+				break;
 			}
 			rplBinaryOperatorNode.setData(result);
-
 		}
 
 		@Override
@@ -170,13 +243,59 @@ public class RplScope {
 
 		@Override
 		public void postVisit(RplInvocationNode rplInvocationNode) {
-			// TODO Auto-generated method stub
-			super.postVisit(rplInvocationNode);
+			Object object = rplInvocationNode.getTarget().getData();
+			if (object == null) {
+				// XXX - warn?
+				rplInvocationNode.setData(null);
+			} else {
+				String name = rplInvocationNode.getMethodName();
+				for (Method method : object.getClass().getMethods()) {
+					if (method.getName().equals(name)
+							&& method.getParameterTypes().length == rplInvocationNode.getArguments().size()) {
+						Object[] args = new Object[rplInvocationNode.getArguments().size()];
+						for (int i = 0; i < args.length; i++) {
+							args[i] = rplInvocationNode.getArguments().get(i).getData();
+						}
+						Object value;
+						try {
+							value = method.invoke(object, args);
+						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							// XXX - warn?
+							e.printStackTrace();
+							value = null;
+						}
+						rplInvocationNode.setData(value);
+						return;
+					}
+				}
+				// XXX - can't find method, warn?
+			}
 		}
+
+		@Override
+		public void postVisit(RplSubscriptNode rplSubscriptNode) {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	public String stringValueOf(Object value) {
 		return value != null ? String.valueOf(value) : "";
+	}
+
+	public BigInteger asBigInteger(Object value) {
+		if (value instanceof BigInteger) {
+			return (BigInteger) value;
+		} else if (value instanceof BigDecimal) {
+			return ((BigDecimal) value).toBigInteger();
+		} else if (value instanceof Number) {
+			return BigInteger.valueOf(((Number) value).longValue());
+		}
+		try {
+			return new BigInteger(String.valueOf(value));
+		} catch (NumberFormatException e) {
+		}
+		return null;
 	}
 
 	public BigDecimal asBigDecimal(Object value) {
@@ -189,11 +308,9 @@ public class RplScope {
 			}
 			return BigDecimal.valueOf(((Number) value).longValue());
 		}
-		if (value instanceof String) {
-			try {
-				return new BigDecimal((String) value);
-			} catch (NumberFormatException e) {
-			}
+		try {
+			return new BigDecimal(String.valueOf(value));
+		} catch (NumberFormatException e) {
 		}
 		return null;
 	}

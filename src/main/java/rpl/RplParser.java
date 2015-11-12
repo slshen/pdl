@@ -258,14 +258,27 @@ public class RplParser {
 	/*
 	 * primary: atom trailer*
 	 * 
-	 * atom: ('(' expression ')' | '[' [listmaker] ']' | '{' [dictorsetmaker]
-	 * '}' | id | NUMBER | STRING+)
 	 * 
-	 * trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
 	 * 
 	 * argument_list = expression ("," expression)*
 	 */
 	private RplExpressionNode parsePrimary() throws IOException {
+		RplExpressionNode expression = parseAtom();
+		while (true) {
+			RplExpressionNode trailer = parseTrailer(expression);
+			if (trailer == expression) {
+				break;
+			}
+			expression = trailer;
+		}
+		return expression;
+	}
+
+	/*
+	 * atom: ('(' expression ')' | '[' [listmaker] ']' | '{' [dictorsetmaker]
+	 * '}' | id | NUMBER | STRING+)
+	 */
+	private RplExpressionNode parseAtom() throws IOException {
 		int t = tokenizer.nextToken();
 		RplExpressionNode expression;
 		if (t == '(') {
@@ -274,19 +287,15 @@ public class RplParser {
 				throw syntaxError("invalid parenthesized expression");
 			}
 		} else if (t == '[') {
-			expression = parseList();
-			if (tokenizer.nextToken() != ']') {
-				throw syntaxError("invalid list expression");
-			}
+			RplListNode node = new RplListNode();
+			node.setLocation(this);
+			parseExpressionList(']', node.getElements());
+			expression = node;
 		} else if (t == Tokenizer.ID) {
-			if (tokenizer.getTokenValue().equals("new")) {
-				throw new UnsupportedOperationException();
-			} else {
-				RplGetValueNode node = new RplGetValueNode();
-				node.setLocation(this);
-				node.setName(tokenizer.getTokenValue());
-				expression = node;
-			}
+			RplGetValueNode node = new RplGetValueNode();
+			node.setLocation(this);
+			node.setName(tokenizer.getTokenValue());
+			expression = node;
 		} else if (t == Tokenizer.NUMBER || t == Tokenizer.STRING || t == Tokenizer.INTERP_STRING) {
 			RplConstantNode node = new RplConstantNode();
 			node.setLocation(this);
@@ -295,56 +304,65 @@ public class RplParser {
 		} else {
 			throw syntaxError(String.format("unexpected token %c", (char) t));
 		}
-		t = tokenizer.nextToken();
+		return expression;
+	}
+
+	/*
+	 * trailer: '[' subscriptlist ']' | '.' NAME ('(' [arglist] ')')?
+	 */
+	private RplExpressionNode parseTrailer(RplExpressionNode expression) throws IOException {
+		int t = tokenizer.nextToken();
 		if (t == '.') {
 			t = tokenizer.nextToken();
 			if (t != Tokenizer.ID) {
 				throw syntaxError("must be attribute name");
 			}
-			RplAttributeNode node = new RplAttributeNode();
-			node.setBase(expression);
-			node.setAttributeName(tokenizer.getTokenValue());
-			expression = node;
-		} else if (t == '(') {
-			throw new UnsupportedOperationException();
+			String name = tokenizer.getTokenValue();
+			t = tokenizer.nextToken();
+			if (t == '(') {
+				RplInvocationNode invocationNode = new RplInvocationNode();
+				invocationNode.setLocation(this);
+				invocationNode.setMethodName(name);
+				invocationNode.setTarget(expression);
+				parseExpressionList(')', invocationNode.getArguments());
+				expression = invocationNode;
+			} else {
+				RplAttributeNode node = new RplAttributeNode();
+				node.setBase(expression);
+				node.setAttributeName(name);
+				expression = node;
+				tokenizer.pushback();
+			}
 		} else if (t == '[') {
-			throw new UnsupportedOperationException();
+			RplSubscriptNode node = new RplSubscriptNode();
+			node.setLocation(this);
+			node.setTarget(expression);
+			node.setIndex(parseExpression());
+			t = tokenizer.nextToken();
+			if (t != ']') {
+				throw syntaxError("expecting ] in subscript");
+			}
+			expression = node;
 		} else {
 			tokenizer.pushback();
 		}
 		return expression;
 	}
 
-	private RplExpressionNode parseList() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private RplExpressionNode parseInvocation() throws IOException {
-		RplInvocationNode node = new RplInvocationNode();
-		node.setLocation(this);
-		node.setConstructor(tokenizer.getTokenValue().equals("new"));
-		RplExpressionNode target = parseExpression();
-		node.setTarget(target);
+	private void parseExpressionList(int terminal, List<RplExpressionNode> args) throws IOException {
 		int t = tokenizer.nextToken();
-		if (t != '(') {
-			tokenizer.pushback();
-			throw syntaxError("expecting '('");
-		}
-		t = tokenizer.nextToken();
-		while (t != ')') {
+		while (t != terminal) {
 			if (t == Tokenizer.EOF) {
 				throw syntaxError("unexpected EOF in argument list");
 			}
 			tokenizer.pushback();
-			node.getArguments().add(parseExpression());
+			args.add(parseExpression());
 			t = tokenizer.nextToken();
-			if (t == ',' || t == ')') {
+			if (t == ',' || t == terminal) {
 				continue;
 			}
-			throw syntaxError("expecting either ',' or ')' in argument list");
+			throw syntaxError("xpecting either ',' or terminator in list");
 		}
-		return node;
 	}
 
 	String getSource() {

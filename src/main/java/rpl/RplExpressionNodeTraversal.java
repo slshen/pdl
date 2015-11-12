@@ -56,10 +56,26 @@ public class RplExpressionNodeTraversal {
 			rplAttributeNode.getBase().accept(this);
 			postVisit(rplAttributeNode);
 		}
+
+		@Override
+		public void visit(RplSubscriptNode rplSubscriptNode) {
+			preVisit(rplSubscriptNode);
+			rplSubscriptNode.getTarget().accept(this);
+			rplSubscriptNode.getIndex().accept(this);
+			postVisit(rplSubscriptNode);
+		}
+		
 	}
 
 	public void traverse(RplExpressionNode node) {
 		node.accept(new Traversal());
+	}
+
+	public void postVisit(RplSubscriptNode rplSubscriptNode) {
+	}
+
+	public void preVisit(RplSubscriptNode rplSubscriptNode) {
+		defaultPreVisit(rplSubscriptNode);
 	}
 
 	public boolean postLeftVisit(RplBinaryOperatorNode rplBinaryOperatorNode) {
