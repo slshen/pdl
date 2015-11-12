@@ -256,14 +256,17 @@ public class RplParser {
 	}
 
 	/*
-	 * primary: atom trailer*
-	 * 
-	 * 
-	 * 
-	 * argument_list = expression ("," expression)*
+	 * primary: (ctor | atom) trailer*
 	 */
 	private RplExpressionNode parsePrimary() throws IOException {
-		RplExpressionNode expression = parseAtom();
+		RplExpressionNode expression;
+		int t = tokenizer.nextToken();
+		if (t == Tokenizer.ID && tokenizer.getTokenValue().equals("new")) {
+			expression = parseCtor();
+		} else {
+			tokenizer.pushback();
+			expression = parseAtom();
+		}
 		while (true) {
 			RplExpressionNode trailer = parseTrailer(expression);
 			if (trailer == expression) {
@@ -272,6 +275,33 @@ public class RplParser {
 			expression = trailer;
 		}
 		return expression;
+	}
+
+	/*
+	 * ctor: 'new' ID ('.' ID)* '(' expression_list ')'
+	 */
+	private RplExpressionNode parseCtor() throws IOException {
+		RplInvocationNode node = new RplInvocationNode();
+		node.setLocation(this);
+		node.setConstructor(true);
+		int t = tokenizer.nextToken();
+		if (t != Tokenizer.ID) {
+			throw syntaxError("'new' must be followed by a type name");
+		}
+		StringBuilder typeName = new StringBuilder(tokenizer.getTokenValue());
+		while ((t = tokenizer.nextToken()) == '.') {
+			t = tokenizer.nextToken();
+			if (t != Tokenizer.ID) {
+				throw syntaxError("invalid type name for 'new'");
+			}
+			typeName.append('.').append(tokenizer.getTokenValue());
+		}
+		node.setMethodName(typeName.toString());
+		if (t != '(') {
+			throw syntaxError("'new' operator must have constructor arguments");
+		}
+		parseExpressionList(')', node.getArguments());
+		return node;
 	}
 
 	/*
@@ -349,6 +379,9 @@ public class RplParser {
 		return expression;
 	}
 
+	/*
+	 * expression_list = expression ("," expression)*
+	 */
 	private void parseExpressionList(int terminal, List<RplExpressionNode> args) throws IOException {
 		int t = tokenizer.nextToken();
 		while (t != terminal) {

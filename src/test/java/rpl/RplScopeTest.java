@@ -26,5 +26,15 @@ public class RplScopeTest extends RplScopeTestFixture {
 		RplScope scope = parser.getResult();
 		Assert.assertEquals("shouting hello, world", scope.get("SAY"));
 	}
+	
+	@Test
+	public void testCalls() throws IOException {
+		RplParser parser = parseFixtures("calls.rpl");
+		RplScope scope = parser.getResult();
+		Assert.assertEquals(Boolean.TRUE, scope.get("IS_PROD"));
+		Object path = scope.get("Y");
+		Assert.assertTrue(path instanceof String);
+		scope.get("Z");
+	}
 
 }

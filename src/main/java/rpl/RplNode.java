@@ -1,7 +1,7 @@
 package rpl;
 
 public abstract class RplNode {
-	private Object data;
+	private final ThreadLocal<Object> data = new ThreadLocal<>();
 	private String source;
 	private int line, col;
 
@@ -28,7 +28,7 @@ public abstract class RplNode {
 	public void setCol(int col) {
 		this.col = col;
 	}
-	
+
 	void setLocation(RplParser parser) {
 		source = parser.getSource();
 		line = parser.getLine();
@@ -36,11 +36,11 @@ public abstract class RplNode {
 	}
 
 	public Object getData() {
-		return data;
+		return data.get();
 	}
 
 	public void setData(Object data) {
-		this.data = data;
+		this.data.set(data);
 	}
 
 }

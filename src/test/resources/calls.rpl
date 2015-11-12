@@ -1,0 +1,5 @@
+X = "prod_us"
+
+IS_PROD = X.startsWith("prod")
+Z = new String("hello, world").length()
+Y = new java.io.File(".").getPath()

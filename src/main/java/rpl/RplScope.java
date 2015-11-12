@@ -1,6 +1,7 @@
 package rpl;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -11,10 +12,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class RplScope {
 
+	private static final Object NULL = new Object();
 	private final Map<String, RplAssignment> assignments;
+	private final ConcurrentMap<String, Object> cache = new ConcurrentHashMap<>();
 
 	private class Evaluator extends RplExpressionNodeTraversal {
 
@@ -243,19 +248,48 @@ public class RplScope {
 
 		@Override
 		public void postVisit(RplInvocationNode rplInvocationNode) {
-			Object object = rplInvocationNode.getTarget().getData();
-			if (object == null) {
-				// XXX - warn?
-				rplInvocationNode.setData(null);
+			if (rplInvocationNode.isConstructor()) {
+				String typeName = rplInvocationNode.getMethodName();
+				Class<?> type;
+				if (typeName.indexOf('.') < 0) {
+					// try java.lang, java.util
+					type = findClass("java.lang." + typeName);
+					if (type == null) {
+						type = findClass("java.util." + typeName);
+					}
+				} else {
+					type = findClass(typeName);
+				}
+				if (type == null) {
+					// XXX warn?
+				} else {
+					for (Constructor<?> ctor : type.getConstructors()) {
+						if (ctor.getParameterTypes().length == rplInvocationNode.getArguments().size()) {
+							Object[] args = getInvocationArgs(rplInvocationNode);
+							try {
+								Object value = ctor.newInstance(args);
+								rplInvocationNode.setData(value);
+							} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+									| InvocationTargetException e) {
+								e.printStackTrace();
+								// XXX ?
+							}
+							return;
+						}
+					}
+					// XXX warn?
+				}
 			} else {
+				Object object = rplInvocationNode.getTarget().getData();
+				if (object == null) {
+					// XXX - warn?
+					return;
+				}
 				String name = rplInvocationNode.getMethodName();
 				for (Method method : object.getClass().getMethods()) {
 					if (method.getName().equals(name)
 							&& method.getParameterTypes().length == rplInvocationNode.getArguments().size()) {
-						Object[] args = new Object[rplInvocationNode.getArguments().size()];
-						for (int i = 0; i < args.length; i++) {
-							args[i] = rplInvocationNode.getArguments().get(i).getData();
-						}
+						Object[] args = getInvocationArgs(rplInvocationNode);
 						Object value;
 						try {
 							value = method.invoke(object, args);
@@ -269,6 +303,22 @@ public class RplScope {
 					}
 				}
 				// XXX - can't find method, warn?
+			}
+		}
+
+		public Object[] getInvocationArgs(RplInvocationNode rplInvocationNode) {
+			Object[] args = new Object[rplInvocationNode.getArguments().size()];
+			for (int i = 0; i < args.length; i++) {
+				args[i] = rplInvocationNode.getArguments().get(i).getData();
+			}
+			return args;
+		}
+
+		private Class<?> findClass(String name) {
+			try {
+				return Class.forName(name);
+			} catch (ClassNotFoundException e) {
+				return null;
 			}
 		}
 
@@ -346,6 +396,15 @@ public class RplScope {
 	}
 
 	public Object get(String name) {
+		if (!cache.containsKey(name)) {
+			Object value = _get(name);
+			cache.putIfAbsent(name, value != null ? value : NULL);
+		}
+		Object value = cache.get(name);
+		return value == NULL ? null : value;
+	}
+
+	private Object _get(String name) {
 		RplAssignment assignment = assignments.get(name);
 		if (assignment == null) {
 			return null;

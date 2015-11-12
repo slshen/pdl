@@ -7,7 +7,9 @@ public class RplExpressionNodeTraversal {
 		@Override
 		public void visit(RplInvocationNode rplInvocationNode) {
 			preVisit(rplInvocationNode);
-			rplInvocationNode.getTarget().accept(this);
+			if (!rplInvocationNode.isConstructor()) {
+				rplInvocationNode.getTarget().accept(this);
+			}
 			for (RplExpressionNode node : rplInvocationNode.getArguments()) {
 				node.accept(this);
 			}
@@ -64,7 +66,7 @@ public class RplExpressionNodeTraversal {
 			rplSubscriptNode.getIndex().accept(this);
 			postVisit(rplSubscriptNode);
 		}
-		
+
 	}
 
 	public void traverse(RplExpressionNode node) {
