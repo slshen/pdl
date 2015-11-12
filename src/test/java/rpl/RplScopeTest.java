@@ -34,7 +34,7 @@ public class RplScopeTest extends RplScopeTestFixture {
 		Assert.assertEquals(Boolean.TRUE, scope.get("IS_PROD"));
 		Object path = scope.get("Y");
 		Assert.assertTrue(path instanceof String);
-		scope.get("Z");
+		Assert.assertEquals(12, scope.get("Z"));
 	}
 
 }

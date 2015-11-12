@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -16,6 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class RplScope {
+	private static final Map<Class<?>, Class<?>> PRIMITIVE_TYPES = new HashMap<>();
+
+	static {
+		PRIMITIVE_TYPES.put(Byte.TYPE, Integer.class);
+		PRIMITIVE_TYPES.put(Character.TYPE, Character.class);
+		PRIMITIVE_TYPES.put(Short.TYPE, Short.class);
+		PRIMITIVE_TYPES.put(Integer.TYPE, Integer.class);
+		PRIMITIVE_TYPES.put(Long.TYPE, Long.class);
+		PRIMITIVE_TYPES.put(Float.TYPE, Float.class);
+		PRIMITIVE_TYPES.put(Double.TYPE, Double.class);
+	}
 
 	private static final Object NULL = new Object();
 	private final Map<String, RplAssignment> assignments;
@@ -263,9 +275,9 @@ public class RplScope {
 				if (type == null) {
 					// XXX warn?
 				} else {
+					Object[] args = getInvocationArgs(rplInvocationNode);
 					for (Constructor<?> ctor : type.getConstructors()) {
-						if (ctor.getParameterTypes().length == rplInvocationNode.getArguments().size()) {
-							Object[] args = getInvocationArgs(rplInvocationNode);
+						if (isCallableWith(ctor.getParameterTypes(), args)) {
 							try {
 								Object value = ctor.newInstance(args);
 								rplInvocationNode.setData(value);
@@ -286,10 +298,10 @@ public class RplScope {
 					return;
 				}
 				String name = rplInvocationNode.getMethodName();
+				Object[] args = getInvocationArgs(rplInvocationNode);
 				for (Method method : object.getClass().getMethods()) {
 					if (method.getName().equals(name)
-							&& method.getParameterTypes().length == rplInvocationNode.getArguments().size()) {
-						Object[] args = getInvocationArgs(rplInvocationNode);
+							&& isCallableWith(method.getParameterTypes(), args)) {
 						Object value;
 						try {
 							value = method.invoke(object, args);
@@ -304,6 +316,26 @@ public class RplScope {
 				}
 				// XXX - can't find method, warn?
 			}
+		}
+
+		private boolean isCallableWith(Class<?>[] parameterTypes, Object[] args) {
+			if (parameterTypes.length != args.length) {
+				return false;
+			}
+			for (int i = 0; i < args.length; i++) {
+				if (parameterTypes[i].isInstance(args[i])) {
+					continue;
+				}
+				// isInstance returns false for primitive types
+				if (parameterTypes[i].isPrimitive()) {
+					Class<?> boxedClass = PRIMITIVE_TYPES.get(parameterTypes[i]);
+					if (boxedClass != null && boxedClass.isInstance(args[i])) {
+						continue;
+					}
+				}
+				return false;
+			}
+			return true;
 		}
 
 		public Object[] getInvocationArgs(RplInvocationNode rplInvocationNode) {
