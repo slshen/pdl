@@ -3,3 +3,10 @@ X = "prod_us"
 IS_PROD = X.startsWith("prod")
 Z = new String("hello, world").length()
 Y = new java.io.File(".").getPath()
+
+if (IS_PROD) {
+  DB = "jdbc:oracle:thin:prod-db-01.example.com:1521/prod"
+}
+
+Q = [].toArray().length
+ONE = [1, 2, 3][0]

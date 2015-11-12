@@ -2,6 +2,7 @@ package rpl;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -106,7 +108,41 @@ public class RplScope {
 
 		@Override
 		public void postVisit(RplAttributeNode rplAttributeNode) {
-			super.postVisit(rplAttributeNode);
+			Object object = rplAttributeNode.getTarget().getData();
+			if (object != null) {
+				String attributeName = rplAttributeNode.getAttributeName();
+				// handle array.length specially
+				if (object.getClass().isArray() && attributeName.equals("length")) {
+					rplAttributeNode.setData(Array.getLength(object));
+					return;
+				}
+				// look for field
+				for (Field field : object.getClass().getFields()) {
+					if (field.getName().equals(attributeName)) {
+						try {
+							rplAttributeNode.setData(field.get(object));
+						} catch (IllegalArgumentException | IllegalAccessException e) {
+							e.printStackTrace();
+						}
+						return;
+					}
+				}
+				// look for getter
+				String getterName = "get" + Character.toUpperCase(attributeName.charAt(0));
+				if (attributeName.length() > 1) {
+					getterName += attributeName.substring(1);
+				}
+				for (Method method : object.getClass().getMethods()) {
+					if (method.getName().equals(getterName) && method.getParameterTypes().length == 0) {
+						try {
+							rplAttributeNode.setData(method.invoke(object));
+						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							e.printStackTrace();
+						}
+						return;
+					}
+				}
+			}
 		}
 
 		@Override
@@ -300,8 +336,7 @@ public class RplScope {
 				String name = rplInvocationNode.getMethodName();
 				Object[] args = getInvocationArgs(rplInvocationNode);
 				for (Method method : object.getClass().getMethods()) {
-					if (method.getName().equals(name)
-							&& isCallableWith(method.getParameterTypes(), args)) {
+					if (method.getName().equals(name) && isCallableWith(method.getParameterTypes(), args)) {
 						Object value;
 						try {
 							value = method.invoke(object, args);
@@ -356,9 +391,34 @@ public class RplScope {
 
 		@Override
 		public void postVisit(RplSubscriptNode rplSubscriptNode) {
-			throw new UnsupportedOperationException();
+			Object object = rplSubscriptNode.getTarget().getData();
+			Object index = rplSubscriptNode.getIndex().getData();
+			if (object instanceof Collection<?>) {
+				BigInteger bi = asBigInteger(index);
+				if (bi != null) {
+					int i = bi.intValue();
+					if (i >= 0 && i < ((Collection<?>) object).size()) {
+						if (object instanceof List<?>) {
+							rplSubscriptNode.setData(((List<?>) object).get(i));
+						} else {
+							Iterator<?> iter = ((Collection<?>) object).iterator();
+							Object value = iter.next();
+							while (i > 0) {
+								value = iter.next();
+								i = i - 1;
+							}
+							rplSubscriptNode.setData(value);
+						}
+					}
+					return;
+				}
+			} else if (object instanceof Map<?, ?> && index != null) {
+				Map<?, ?> map = (Map<?, ?>) object;
+				rplSubscriptNode.setData(map.get(index));
+			} else {
+				// XXX - warn? error?
+			}
 		}
-
 	}
 
 	public String stringValueOf(Object value) {
@@ -399,7 +459,7 @@ public class RplScope {
 
 	public boolean isTrue(Object value) {
 		if (value != null) {
-			if (value == Boolean.TRUE) {
+			if (value instanceof Boolean && ((Boolean) value).booleanValue()) {
 				return true;
 			}
 			if (value instanceof String) {
@@ -471,6 +531,14 @@ public class RplScope {
 			} else {
 				result = value;
 			}
+		}
+		return result;
+	}
+
+	public Map<String, Object> toMap() {
+		Map<String, Object> result = new HashMap<>();
+		for (String name : assignments.keySet()) {
+			result.put(name, get(name));
 		}
 		return result;
 	}

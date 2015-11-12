@@ -2,6 +2,7 @@ package rpl;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,6 +36,13 @@ public class RplScopeTest extends RplScopeTestFixture {
 		Object path = scope.get("Y");
 		Assert.assertTrue(path instanceof String);
 		Assert.assertEquals(12, scope.get("Z"));
+	}
+	
+	@Test
+	public void testToMap() throws IOException {
+		RplParser parser = parseFixtures("calls.rpl");
+		Map<String, Object> map = parser.getResult().toMap();
+		System.out.println(map);
 	}
 
 }

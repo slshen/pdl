@@ -321,6 +321,11 @@ public class RplParser {
 			node.setLocation(this);
 			parseExpressionList(']', node.getElements());
 			expression = node;
+		} else if (t == '{') {
+			RplDictNode node = new RplDictNode();
+			node.setLocation(this);;
+			parseDictEntries(node.getDict());
+			expression = node;
 		} else if (t == Tokenizer.ID) {
 			RplGetValueNode node = new RplGetValueNode();
 			node.setLocation(this);
@@ -335,6 +340,14 @@ public class RplParser {
 			throw syntaxError(String.format("unexpected token %c", (char) t));
 		}
 		return expression;
+	}
+
+	/*
+	 * dict_entries = dict_entry (',' dict_entry)*
+	 * dict_entry = (( ID | STRING ) ':' expression)
+	 */
+	private void parseDictEntries(Map<String, RplExpressionNode> dict) {
+		throw new UnsupportedOperationException();
 	}
 
 	/*
@@ -358,7 +371,7 @@ public class RplParser {
 				expression = invocationNode;
 			} else {
 				RplAttributeNode node = new RplAttributeNode();
-				node.setBase(expression);
+				node.setTarget(expression);
 				node.setAttributeName(name);
 				expression = node;
 				tokenizer.pushback();
@@ -384,17 +397,19 @@ public class RplParser {
 	 */
 	private void parseExpressionList(int terminal, List<RplExpressionNode> args) throws IOException {
 		int t = tokenizer.nextToken();
-		while (t != terminal) {
-			if (t == Tokenizer.EOF) {
-				throw syntaxError("unexpected EOF in argument list");
-			}
-			tokenizer.pushback();
+		if (t == terminal) {
+			return;
+		}
+		tokenizer.pushback();
+		while (true) {
 			args.add(parseExpression());
 			t = tokenizer.nextToken();
-			if (t == ',' || t == terminal) {
-				continue;
+			if (t == terminal) {
+				break;
 			}
-			throw syntaxError("xpecting either ',' or terminator in list");
+			if (t != ',') {
+				throw syntaxError("expecting either ',' or terminator in list");
+			}
 		}
 	}
 
