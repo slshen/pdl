@@ -305,6 +305,7 @@ class Tokenizer {
 		}
 		if ((ch = read()) != '\"') {
 			unread(ch);
+			unread('"');
 			return false;
 		}
 		return true;

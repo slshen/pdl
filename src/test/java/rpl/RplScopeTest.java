@@ -39,10 +39,28 @@ public class RplScopeTest extends RplScopeTestFixture {
 	}
 	
 	@Test
+	public void testMaps() throws IOException { 
+		RplParser parser = parseFixtures("maps.rpl");
+		RplScope scope = parser.getResult();
+		Assert.assertEquals("hello, world", scope.get("SAY"));
+	}
+	
+	@Test
 	public void testToMap() throws IOException {
 		RplParser parser = parseFixtures("calls.rpl");
 		Map<String, Object> map = parser.getResult().toMap();
-		System.out.println(map);
+		Assert.assertEquals(12, map.get("Z"));
+		Assert.assertEquals(Boolean.TRUE, map.get("IS_PROD"));
+	}
+	
+	@Test
+	public void testT1() throws IOException {
+		RplParser parser = parseFixtures("t1.rpl");
+		parser.parse(new StringReader("DB_TYPE = 'oracle'"), "input");
+		RplScope scope = parser.getResult();
+		System.out.println(scope.get("ORACLE_URL_TEMPLATE"));
+		System.out.println(scope.get("LC_DB_URL"));
+		
 	}
 
 }

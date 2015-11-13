@@ -4,25 +4,20 @@
 
 ENV = "dev"
 
-IS_PROD = ENV ~= "^prod"
+IS_PROD = ENV.startsWith("prod")
 
-// possible future extension
-template DB_TEMPLATE {
-	TYPE = "oracle"
-	PORT = 1521
-	if (TYPE == "oracle") {
-	   URL = "jdbc:oracle:thin:@" + HOST + ":" + PORT + ":" + SID
+ORACLE_URL_TEMPLATE = {
+	PORT : 1521,
+	URL: "jdbc:oracle:thin:@" + HOST + ":" + PORT
+}
+
+if (DB_TYPE == "oracle") {
+    LC_DB = ORACLE_URL_TEMPLATE
+    LC_DB += {
+		HOST: "usdevdb01.example.com",
+		SID: ""
 	}
-
 }
 
+LC_DB_URL = LC_DB.URL
 
-LC_DB_ follows DB_TEMPLATE
-
-LC_DB_HOST = "usdevdb01.tlcinternal.com"
-
-if (ENV == "dev") {
-	DB_NUMBER = 1
-	DB_HOST = "devdb01"
-	DB_SID = "dev" + DB_NUMBER
-}

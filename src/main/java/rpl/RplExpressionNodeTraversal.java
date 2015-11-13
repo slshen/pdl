@@ -70,8 +70,14 @@ public class RplExpressionNodeTraversal {
 		@Override
 		public void visit(RplDictNode rplDictNode) {
 			preVisit(rplDictNode);
-			for (RplExpressionNode value : rplDictNode.getDict().values()) {
-				value.accept(this);
+			if (rplDictNode.isSet()) {
+				for (Object element : rplDictNode.getDict().keySet()) {
+					((RplExpressionNode) element).accept(this);
+				}
+			} else {
+				for (Object value : rplDictNode.getDict().values()) {
+					((RplExpressionNode) value).accept(this);
+				}
 			}
 			postVisit(rplDictNode);
 		}

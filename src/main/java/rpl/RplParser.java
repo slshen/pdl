@@ -167,9 +167,24 @@ public class RplParser {
 	private RplExpressionNode parseComparison() throws IOException {
 		RplExpressionNode expression = parseExpr();
 		int t = tokenizer.nextToken();
-		while (t == Tokenizer.EQ || t == Tokenizer.GE || t == Tokenizer.LE || t == Tokenizer.NEQ || t == '>'
-				|| t == '<') {
-			expression = createBinaryOperatorNode(expression, t).withRight(parseComparison());
+		while (t == Tokenizer.EQ || t == Tokenizer.GE || t == Tokenizer.LE || t == Tokenizer.NEQ || t == '>' || t == '<'
+				|| t == Tokenizer.ID) {
+			int operator = t;
+			if (t == Tokenizer.ID) {
+				if (tokenizer.getTokenValue().equals("in")) {
+					operator = RplBinaryOperatorNode.IN;
+				} else if (tokenizer.getTokenValue().equals("not")) {
+					if (tokenizer.nextToken() == Tokenizer.ID && tokenizer.getTokenValue().equals("in")) {
+						operator = RplBinaryOperatorNode.NOT_IN;
+					} else {
+						tokenizer.pushback();
+						break;
+					}
+				} else {
+					break;
+				}
+			}
+			expression = createBinaryOperatorNode(expression, operator).withRight(parseComparison());
 			t = tokenizer.nextToken();
 		}
 		tokenizer.pushback();
@@ -323,18 +338,19 @@ public class RplParser {
 			expression = node;
 		} else if (t == '{') {
 			RplDictNode node = new RplDictNode();
-			node.setLocation(this);;
-			parseDictEntries(node.getDict());
+			node.setLocation(this);
+			parseDictEntries(node);
+			expression = node;
+		} else if (t == Tokenizer.NUMBER || t == Tokenizer.STRING || t == Tokenizer.INTERP_STRING || (t == Tokenizer.ID
+				&& (tokenizer.getTokenValue().equals("true") || tokenizer.getTokenValue().equals("false")))) {
+			RplConstantNode node = new RplConstantNode();
+			node.setLocation(this);
+			node.setValue(tokenizer.getTokenValue());
 			expression = node;
 		} else if (t == Tokenizer.ID) {
 			RplGetValueNode node = new RplGetValueNode();
 			node.setLocation(this);
 			node.setName(tokenizer.getTokenValue());
-			expression = node;
-		} else if (t == Tokenizer.NUMBER || t == Tokenizer.STRING || t == Tokenizer.INTERP_STRING) {
-			RplConstantNode node = new RplConstantNode();
-			node.setLocation(this);
-			node.setValue(tokenizer.getTokenValue());
 			expression = node;
 		} else {
 			throw syntaxError(String.format("unexpected token %c", (char) t));
@@ -343,11 +359,48 @@ public class RplParser {
 	}
 
 	/*
-	 * dict_entries = dict_entry (',' dict_entry)*
-	 * dict_entry = (( ID | STRING ) ':' expression)
+	 * dict_entries = dict_entry (',' dict_entry)* dict_entry = (( ID | STRING )
+	 * ':' expression)
 	 */
-	private void parseDictEntries(Map<String, RplExpressionNode> dict) {
-		throw new UnsupportedOperationException();
+	private void parseDictEntries(RplDictNode node) throws IOException {
+		int t = tokenizer.nextToken();
+		if (t == Tokenizer.ID || t == Tokenizer.STRING) {
+			// peek ahead to see if this is a set or dict
+			int t2 = tokenizer.nextToken();
+			if (t2 != ':') {
+				node.setSet(true);
+			}
+			tokenizer.pushback();
+		} else if (t != '}') {
+			node.setSet(true);
+		}
+		tokenizer.pushback();
+		while (true) {
+			t = tokenizer.nextToken();
+			if (t == '}')
+				break;
+			if (node.isSet()) {
+				tokenizer.pushback();
+				node.getDict().put(parseExpression(), Boolean.TRUE);
+			} else {
+				// dict
+				if (t == Tokenizer.ID || t == Tokenizer.STRING) {
+					String name = tokenizer.getTokenValue();
+					t = tokenizer.nextToken();
+					if (t != ':') {
+						throw syntaxError("dictionary entry must be name : value");
+					}
+					RplExpressionNode value = parseExpression();
+					node.getDict().put(name, value);
+				}
+			}
+			t = tokenizer.nextToken();
+			if (t == ',') {
+				continue;
+			}
+			if (t == '}')
+				break;
+		}
 	}
 
 	/*

@@ -12,9 +12,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -46,6 +49,14 @@ public class RplScope {
 		public void postVisit(RplGetValueNode rplGetValueNode) {
 			String name = rplGetValueNode.getName();
 			Object value = get(name);
+			// since these are mutable values we return copies
+			if (value instanceof Map<?, ?>) {
+				value = new LinkedHashMap<Object, Object>((Map<?, ?>) value);
+			} else if (value instanceof Set<?>) {
+				value = new LinkedHashSet<Object>((Set<?>) value);
+			} else if (value instanceof Collection<?>) {
+				value = new ArrayList<Object>((Collection<?>) value);
+			}
 			rplGetValueNode.setData(value);
 		}
 
@@ -111,6 +122,10 @@ public class RplScope {
 			Object object = rplAttributeNode.getTarget().getData();
 			if (object != null) {
 				String attributeName = rplAttributeNode.getAttributeName();
+				if (object instanceof Map<?, ?>) {
+					rplAttributeNode.setData(((Map<?, ?>) object).get(attributeName));
+					return;
+				}
 				// handle array.length specially
 				if (object.getClass().isArray() && attributeName.equals("length")) {
 					rplAttributeNode.setData(Array.getLength(object));
@@ -172,22 +187,7 @@ public class RplScope {
 			Object result = null;
 			switch (rplBinaryOperatorNode.getOperator()) {
 			case '+': {
-				BigDecimal leftNumber = asBigDecimal(leftValue);
-				BigDecimal rightNumber = asBigDecimal(rightValue);
-				if (leftNumber != null && rightNumber != null) {
-					result = leftNumber.add(rightNumber);
-				} else if (leftValue instanceof Collection<?>) {
-					List<Object> list = new ArrayList<>();
-					list.addAll((Collection<?>) leftValue);
-					if (rightValue instanceof Collection<?>) {
-						list.addAll((Collection<?>) rightValue);
-					} else {
-						list.add(rightValue);
-					}
-					result = list;
-				} else {
-					result = stringValueOf(leftValue) + stringValueOf(rightValue);
-				}
+				result = plus(leftValue, rightValue);
 				break;
 			}
 			case RplBinaryOperatorNode.EQ: {
@@ -419,6 +419,24 @@ public class RplScope {
 				// XXX - warn? error?
 			}
 		}
+
+		@Override
+		public void postVisit(RplDictNode rplDictNode) {
+			if (rplDictNode.isSet()) {
+				Set<Object> result = new LinkedHashSet<Object>();
+				for (Object element : rplDictNode.getDict().keySet()) {
+					result.add(((RplExpressionNode) element).getData());
+				}
+				rplDictNode.setData(result);
+			} else {
+				Map<Object, Object> result = new LinkedHashMap<Object, Object>();
+				for (Map.Entry<Object, Object> entry : rplDictNode.getDict().entrySet()) {
+					result.put(entry.getKey(), ((RplExpressionNode) entry.getValue()).getData());
+				}
+				rplDictNode.setData(result);
+			}
+		}
+
 	}
 
 	public String stringValueOf(Object value) {
@@ -487,6 +505,39 @@ public class RplScope {
 		this.assignments = assignments;
 	}
 
+	public Object plus(Object leftValue, Object rightValue) {
+		if (leftValue == null) {
+			return rightValue;
+		}
+		Object result;
+		BigDecimal leftNumber = asBigDecimal(leftValue);
+		BigDecimal rightNumber = asBigDecimal(rightValue);
+		if (leftNumber != null && rightNumber != null) {
+			result = leftNumber.add(rightNumber);
+		} else if (leftValue instanceof Collection<?>) {
+			@SuppressWarnings("unchecked")
+			Collection<Object> list = (Collection<Object>) leftValue;
+			if (rightValue instanceof Collection<?>) {
+				list.addAll((Collection<?>) rightValue);
+			} else {
+				list.add(rightValue);
+			}
+			result = list;
+		} else if (leftValue instanceof Map<?, ?>) {
+			@SuppressWarnings("unchecked")
+			Map<Object, Object> map = (Map<Object, Object>) leftValue;
+			if (rightValue instanceof Map<?, ?>) {
+				map.putAll((Map<?, ?>) rightValue);
+			} else {
+				// XXX - ?
+			}
+			result = map;
+		} else {
+			result = stringValueOf(leftValue) + stringValueOf(rightValue);
+		}
+		return result;
+	}
+
 	public Object get(String name) {
 		if (!cache.containsKey(name)) {
 			Object value = _get(name);
@@ -516,16 +567,7 @@ public class RplScope {
 			}
 			Object value = new Evaluator().eval(conditionalAssignment.getValue());
 			if (conditionalAssignment.isAppend()) {
-				if (result == null) {
-					result = new ArrayList<Object>();
-				}
-				if (result instanceof List<?>) {
-					@SuppressWarnings("unchecked")
-					List<Object> list = (List<Object>) result;
-					list.add(value);
-				} else {
-					result = result.toString() + value;
-				}
+				result = plus(result, value);
 			} else if (conditionalAssignment.isOverride()) {
 				return value;
 			} else {
