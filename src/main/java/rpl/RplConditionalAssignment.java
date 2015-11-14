@@ -6,6 +6,7 @@ import java.util.List;
 public class RplConditionalAssignment extends RplNode {
 	
 	private final List<RplExpressionNode> conditions = new ArrayList<>();
+	private RplPropertySetNode propertySet;
 	private RplExpressionNode value;
 	private boolean override;
 	private boolean append;
@@ -16,6 +17,14 @@ public class RplConditionalAssignment extends RplNode {
 
 	public RplExpressionNode getValue() {
 		return value;
+	}
+
+	public RplPropertySetNode getPropertySet() {
+		return propertySet;
+	}
+
+	public void setPropertySet(RplPropertySetNode propertySet) {
+		this.propertySet = propertySet;
 	}
 
 	public void setValue(RplExpressionNode value) {

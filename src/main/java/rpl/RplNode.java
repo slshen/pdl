@@ -28,13 +28,7 @@ public abstract class RplNode {
 	public void setCol(int col) {
 		this.col = col;
 	}
-
-	void setLocation(RplParser parser) {
-		source = parser.getSource();
-		line = parser.getLine();
-		col = parser.getColumn();
-	}
-
+	
 	public Object getData() {
 		return data.get();
 	}

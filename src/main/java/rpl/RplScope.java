@@ -21,8 +21,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RplScope {
 	private static final Map<Class<?>, Class<?>> PRIMITIVE_TYPES = new HashMap<>();
+	private static final Logger logger = LoggerFactory.getLogger(RplScope.class);
 
 	static {
 		PRIMITIVE_TYPES.put(Byte.TYPE, Integer.class);
@@ -319,7 +323,7 @@ public class RplScope {
 								rplInvocationNode.setData(value);
 							} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 									| InvocationTargetException e) {
-								e.printStackTrace();
+								logger.warn("call failed", e);
 								// XXX ?
 							}
 							return;
@@ -436,7 +440,6 @@ public class RplScope {
 				rplDictNode.setData(result);
 			}
 		}
-
 	}
 
 	public String stringValueOf(Object value) {
@@ -553,7 +556,7 @@ public class RplScope {
 			return null;
 		}
 		Object result = null;
-		ListIterator<RplConditionalAssignment> iter = assignment.getAssignments().listIterator();
+		ListIterator<RplConditionalAssignment> iter = assignment.getConditionalAssignments().listIterator();
 		assignment: while (iter.hasNext()) {
 			/*
 			 * XXX - should check for override assignments in reverse order so
@@ -565,16 +568,26 @@ public class RplScope {
 					continue assignment;
 				}
 			}
-			Object value = new Evaluator().eval(conditionalAssignment.getValue());
-			if (conditionalAssignment.isAppend()) {
-				result = plus(result, value);
-			} else if (conditionalAssignment.isOverride()) {
-				return value;
+			RplPropertySetNode propertySetNode = conditionalAssignment.getPropertySet();
+			if (propertySetNode != null) {
+				result = applyPropertySetAssignment(conditionalAssignment, result);
 			} else {
-				result = value;
+				Object value = new Evaluator().eval(conditionalAssignment.getValue());
+				if (conditionalAssignment.isAppend()) {
+					result = plus(result, value);
+				} else {
+					result = value;
+				}
+			}
+			if (conditionalAssignment.isOverride()) {
+				break;
 			}
 		}
 		return result;
+	}
+
+	private Object applyPropertySetAssignment(RplConditionalAssignment conditionalAssignment, Object result) {
+		throw new UnsupportedOperationException();
 	}
 
 	public Map<String, Object> toMap() {
