@@ -147,6 +147,7 @@ public class RplParser {
 			} else if (t != ',') {
 				throw syntaxError("property definitions must be separated by ','");
 			}
+			t = tokenizer.nextToken();
 		}
 		return propertySet;
 	}

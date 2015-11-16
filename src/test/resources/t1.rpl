@@ -14,10 +14,12 @@ ORACLE_URL_TEMPLATE = {
 if (DB_TYPE == "oracle") {
     LC_DB = ORACLE_URL_TEMPLATE
     LC_DB += {
-		HOST: "usdevdb01.example.com",
-		SID: ""
+		HOST: "usdevdb" + APP_NUMBER + ".example.com"
 	}
 }
 
+APP_NUMBER = 22
 LC_DB_URL = LC_DB.URL
-
+LC_DB += {
+   PORT : 1522
+}

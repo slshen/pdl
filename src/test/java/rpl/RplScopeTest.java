@@ -58,9 +58,7 @@ public class RplScopeTest extends RplScopeTestFixture {
 		RplParser parser = parseFixtures("t1.rpl");
 		parser.parse(new StringReader("DB_TYPE = 'oracle'"), "input");
 		RplScope scope = parser.getResult();
-		System.out.println(scope.get("ORACLE_URL_TEMPLATE"));
-		System.out.println(scope.get("LC_DB_URL"));
-		
+		Assert.assertEquals("jdbc:oracle:thin:@usdevdb22.example.com:1522", scope.get("LC_DB_URL"));
 	}
 
 }
