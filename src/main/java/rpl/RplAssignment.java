@@ -6,7 +6,7 @@ import java.util.List;
 public class RplAssignment {
 	
 	private final String name;
-	private final List<RplConditionalAssignment> assignments = new ArrayList<>();
+	private final List<RplConditionalAssignment> conditionalAssignments = new ArrayList<>();
 
 	public RplAssignment(String name) {
 		this.name = name;
@@ -16,8 +16,8 @@ public class RplAssignment {
 		return name;
 	}
 
-	public List<RplConditionalAssignment> getAssignments() {
-		return assignments;
+	public List<RplConditionalAssignment> getConditionalAssignments() {
+		return conditionalAssignments;
 	}
 
 }

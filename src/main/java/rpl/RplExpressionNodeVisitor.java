@@ -23,4 +23,10 @@ public class RplExpressionNodeVisitor {
 	public void visit(RplAttributeNode rplAttributeNode) {
 	}
 
+	public void visit(RplSubscriptNode rplSubscriptNode) {
+	}
+
+	public void visit(RplDictNode rplDictNode) {
+	}
+
 }

@@ -7,7 +7,9 @@ public class RplExpressionNodeTraversal {
 		@Override
 		public void visit(RplInvocationNode rplInvocationNode) {
 			preVisit(rplInvocationNode);
-			rplInvocationNode.getTarget().accept(this);
+			if (!rplInvocationNode.isConstructor()) {
+				rplInvocationNode.getTarget().accept(this);
+			}
 			for (RplExpressionNode node : rplInvocationNode.getArguments()) {
 				node.accept(this);
 			}
@@ -53,13 +55,51 @@ public class RplExpressionNodeTraversal {
 		@Override
 		public void visit(RplAttributeNode rplAttributeNode) {
 			preVisit(rplAttributeNode);
-			rplAttributeNode.getBase().accept(this);
+			rplAttributeNode.getTarget().accept(this);
 			postVisit(rplAttributeNode);
 		}
+
+		@Override
+		public void visit(RplSubscriptNode rplSubscriptNode) {
+			preVisit(rplSubscriptNode);
+			rplSubscriptNode.getTarget().accept(this);
+			rplSubscriptNode.getIndex().accept(this);
+			postVisit(rplSubscriptNode);
+		}
+
+		@Override
+		public void visit(RplDictNode rplDictNode) {
+			preVisit(rplDictNode);
+			if (rplDictNode.isSet()) {
+				for (Object element : rplDictNode.getDict().keySet()) {
+					((RplExpressionNode) element).accept(this);
+				}
+			} else {
+				for (Object value : rplDictNode.getDict().values()) {
+					((RplExpressionNode) value).accept(this);
+				}
+			}
+			postVisit(rplDictNode);
+		}
+
 	}
 
 	public void traverse(RplExpressionNode node) {
 		node.accept(new Traversal());
+	}
+
+	public void postVisit(RplDictNode rplDictNode) {
+	}
+
+	public void preVisit(RplDictNode rplDictNode) {
+		defaultPreVisit(rplDictNode);
+	}
+
+	public void postVisit(RplSubscriptNode rplSubscriptNode) {
+	}
+
+	public void preVisit(RplSubscriptNode rplSubscriptNode) {
+		defaultPreVisit(rplSubscriptNode);
 	}
 
 	public boolean postLeftVisit(RplBinaryOperatorNode rplBinaryOperatorNode) {

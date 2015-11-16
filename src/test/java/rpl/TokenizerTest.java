@@ -13,6 +13,12 @@ public class TokenizerTest {
 		Tokenizer tokenizer = createTokenizer("0b11110000");
 		assertNextTokenValue(tokenizer, Tokenizer.NUMBER, "0xf0");
 	}
+	
+	@Test
+	public void testEmptyString() throws IOException {
+		Tokenizer tokenizer = createTokenizer("\"\"");
+		assertNextTokenValue(tokenizer, Tokenizer.INTERP_STRING, "");
+	}
 
 	@Test
 	public void testNumbers() throws IOException {

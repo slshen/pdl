@@ -2,15 +2,15 @@ package rpl;
 
 public class RplAttributeNode extends RplExpressionNode {
 
-	private RplExpressionNode base;
+	private RplExpressionNode target;
 	private String attributeName;
 
-	public RplExpressionNode getBase() {
-		return base;
+	public RplExpressionNode getTarget() {
+		return target;
 	}
 
-	public void setBase(RplExpressionNode base) {
-		this.base = base;
+	public void setTarget(RplExpressionNode base) {
+		this.target = base;
 	}
 
 	public String getAttributeName() {

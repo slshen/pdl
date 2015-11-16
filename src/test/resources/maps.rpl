@@ -1,0 +1,3 @@
+M = { greeting: 'hello', subject: 'world' }
+
+SAY = M.greeting + ", " + M.subject

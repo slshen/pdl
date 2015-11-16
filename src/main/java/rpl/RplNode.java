@@ -1,7 +1,6 @@
 package rpl;
 
 public abstract class RplNode {
-	private Object data;
 	private String source;
 	private int line, col;
 
@@ -21,7 +20,7 @@ public abstract class RplNode {
 		this.line = line;
 	}
 
-	public int getCol() {
+	public int getColumn() {
 		return col;
 	}
 
@@ -29,18 +28,8 @@ public abstract class RplNode {
 		this.col = col;
 	}
 	
-	void setLocation(RplParser parser) {
-		source = parser.getSource();
-		line = parser.getLine();
-		col = parser.getColumn();
-	}
-
-	public Object getData() {
-		return data;
-	}
-
-	public void setData(Object data) {
-		this.data = data;
+	public String diagMessage(String msg) {
+		return String.format("%s:%d:%s", getSource(), getLine(), msg);
 	}
 
 }
