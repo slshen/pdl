@@ -1,17 +1,24 @@
 package rpl;
 
-public class SyntaxException extends RuntimeException {
+public class SyntaxException extends RplException {
 
 	private static final long serialVersionUID = 1L;
+	private boolean eof;
 
 	public SyntaxException(String message, Throwable cause) {
 		super(message, cause);
-		// TODO Auto-generated constructor stub
 	}
 
 	public SyntaxException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
+	}
+
+	public boolean isEof() {
+		return eof;
+	}
+
+	public void setEof(boolean eof) {
+		this.eof = eof;
 	}
 
 }

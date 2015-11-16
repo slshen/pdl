@@ -512,7 +512,12 @@ public class RplParser {
 	}
 
 	private SyntaxException syntaxError(String string) {
-		return new SyntaxException(String.format("%s:%d %s", source, tokenizer.getLine(), string));
+		SyntaxException e = new SyntaxException(String.format("%s:%d %s", source, tokenizer.getLine(), string));
+		e.setSource(source);
+		e.setLine(tokenizer.getLine());
+		e.setColumn(tokenizer.getColumn());
+		e.setEof(tokenizer.getToken() == Tokenizer.EOF);
+		return e;
 	}
 
 }

@@ -1,7 +1,6 @@
 package rpl;
 
 public abstract class RplNode {
-	private final ThreadLocal<Object> data = new ThreadLocal<>();
 	private String source;
 	private int line, col;
 
@@ -21,7 +20,7 @@ public abstract class RplNode {
 		this.line = line;
 	}
 
-	public int getCol() {
+	public int getColumn() {
 		return col;
 	}
 
@@ -29,12 +28,8 @@ public abstract class RplNode {
 		this.col = col;
 	}
 	
-	public Object getData() {
-		return data.get();
-	}
-
-	public void setData(Object data) {
-		this.data.set(data);
+	public String diagMessage(String msg) {
+		return String.format("%s:%d:%s", getSource(), getLine(), msg);
 	}
 
 }
