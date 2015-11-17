@@ -202,7 +202,7 @@ class Evaluator extends ValueFunctions {
 				}
 				break;
 			}
-			// TODO - NEQ, >, <, GTE, LTE
+				// TODO - NEQ, >, <, GTE, LTE
 			case '-': {
 				if (leftValue instanceof Collection<?>) {
 					List<Object> list = new ArrayList<>();
@@ -213,9 +213,9 @@ class Evaluator extends ValueFunctions {
 						list.remove(rightValue);
 					}
 					result = list;
-				} else if (leftValue instanceof Map<?,?>) {
+				} else if (leftValue instanceof Map<?, ?>) {
 					@SuppressWarnings("unchecked")
-					Map<Object, Object> map = (Map<Object,Object>) leftValue;
+					Map<Object, Object> map = (Map<Object, Object>) leftValue;
 					if (rightValue instanceof Collection<?>) {
 						for (Object element : (Collection<?>) rightValue) {
 							map.remove(element);
@@ -456,6 +456,10 @@ class Evaluator extends ValueFunctions {
 
 	void setValue(RplExpressionNode expression, Object value) {
 		scope.getValues().put(expression, value);
+		List<RplExpressionNode> trace = scope.getTrace();
+		if (trace != null) {
+			trace.add(expression);
+		}
 	}
 
 	public Object eval(RplExpressionNode expr) {

@@ -1,6 +1,7 @@
 package rpl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
@@ -9,9 +10,19 @@ public class RplScope extends ExpressionScope {
 	private static final Object NULL = new Object();
 	private final Map<String, RplAssignment> assignments;
 	private final Map<String, Object> cache = new HashMap<>();
+	private List<RplExpressionNode> trace;
 
-	public RplScope(Map<String, RplAssignment> assignments) {
+	RplScope(Map<String, RplAssignment> assignments) {
 		this.assignments = assignments;
+	}
+	
+	@Override
+	List<RplExpressionNode> getTrace() {
+		return trace;
+	}
+	
+	void setTrace(List<RplExpressionNode> trace) {
+		this.trace = trace;
 	}
 
 	public Object get(String name) {

@@ -39,7 +39,7 @@ A property may be defined in one of the following ways:
 This changes the definition of the property to append the value
 of `expression` to the previous definition.
 
-    At evaluation time, Appending works as follows: if both values are
+    At evaluation time, appending works as follows: if both values are
     numbers (or can be parsed as numbers), the result is the sum; if
     the existing value is null the result is the new value; if the
     existing value is a collection, the new values are added to the

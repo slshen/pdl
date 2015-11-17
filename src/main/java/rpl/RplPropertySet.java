@@ -1,6 +1,7 @@
 package rpl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RplPropertySet extends ExpressionScope {
@@ -28,6 +29,11 @@ public class RplPropertySet extends ExpressionScope {
 			return new Evaluator(this).eval(node);
 		}
 		return scope.eval(name);
+	}
+
+	@Override
+	List<RplExpressionNode> getTrace() {
+		return scope.getTrace();
 	}
 
 }
