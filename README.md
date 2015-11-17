@@ -84,10 +84,18 @@ can be used for membership testing.
 
 * The short-cut logical `&&` and `||` operators work as in java.
 
-Java methods may be invoked on values.  (N.B. -- no current syntax to invoke a
-static method.)
+The following are also supported:
 
-New java objects can be created with `new class-name( arguments ... )`.  The
+* Attribute access via `.name` will access the public field `name` on the java object,
+or call `getName()`, or if the object is a map return the value associated with `name`,
+or if the object is a property set, return the value of the property.
+
+* Method invocation via `.name( args .. )` calls a java method.  (No current
+syntax exists to invoke a static method.)
+
+* Subscripting arrays, collections, and maps via `[ expression ]`.
+
+* Creating new java objects can be created with `new class-name( arguments ... )`.  The
 class name must be fully qualified unless it's in `java.lang` or `java.util`.
 
 ## Property Sets
