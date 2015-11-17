@@ -1,51 +1,76 @@
 # Recursive Property Language
 
-Like a properties file, in that we can define properties:
+RPL is a little language for defining properties:
 
     GREETING = "hello"
     SUBJECT = "world"
 
-Except we can define properties in terms of other properties:
+Properties can be defined in terms of other properties:
 
     SAY = GREETING + ", " + SUBJECT
-    
-We can also introduce conditions:
 
-    if (ENV == 'dev') {
+Property definitions can be conditional (including nested conditions), and can
+replace the definition of a property, or append values to a property.
+
+    if (IS_NOISY) {
       GREETING = "(shouting) hello"
-    }
-    if (ENV == 'prod') {
-      GREETING = "(whispering) hello"
+      SAY += "!"
     }
 
-Conditions can be nested:
-
-    if (ENV != "prod") {
-      AUTH_SERVICE = "https://nonprod-auth.example.com/"
-      WORKFLOW_SERVICE = "https://nonprod-wf.example.com/"
-      if (ENV == "demo") {
-         WORKFLOW_SERVICE = "https://demo-wf.example.com/"
-      }
-    }
-
-Unlike in most programmig languages, properties are not evaluated
+Property definitions are declarative.  Property values are not evaluated
 and assigned in order.  Instead, properties are evaluated as-needed
-recursively.  For example:
+recursively.
 
-    Z = X + 1
-    if (Y == 0) {
-       Z = X + 2
+## Property Definitions
+
+A property may be defined in one of the following ways:
+
+1. Simple assignment in the form `PROPERTY_NAME = expression`.
+
+2. Appending assignment in the form `PROPERTY_NAME += expression`.
+
+3. Conditional assignments, in the form `if (expression) { assignments ... }`
+
+4. Property sets, explained below.
+
+
+
+## Property Sets
+
+Property sets are sets of properties:
+
+    oracle_jdbc_template = {
+        JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
     }
-    if (Y == 1) {
-       Z = X * 2
+
+So that `oracle_jdbc_template.jdbc` evaluates an oracle jdbc URL.  The evaluation
+takes place in the content of the property set -- names in the set take precedence
+over global names.
+
+Property sets can extended:
+
+    if (ENV == "dev") {
+       oracle_jdbc_template += {
+           host = "oracledev-" + APP_ID + "example.com"
+           port = 1521
+           service = "dev"
+       }
     }
-    X = Y + 1
 
-To evaulate `Z`, when `Y = 1`
+In this case, we establish some defaults if we're running in `dev`.
 
-1. Calculate `X + 1`, which is `Y + 1`, which is 2.  This is our
-intitial, temporary answer for `Z`.
-2. See if `Y == 0` -- it isn't so stick with 2.
-3. See if `Y == 1` -- it is, so evaluate `X * 2` which is 4.  This is
-our new temporary answer for `Z`.
-4. There are no further assignments to `Z`, so the final answer is 4.
+Property sets may be assigned to other properties.
+
+    if (DB_TYPE == "oracle") {
+        DB = oracle_jdbc_template
+    }
+
+Here we define a new property set, that contains all the property definitions of
+`oracle_jdbc_template`.  Note that properties can now be added or to either `DB`
+or `oracle_jdbc_template`.
+
+## Expressions
+
+Property names are always strings.  Property values may be any java type.
+
+Literal values are always treated as strings
