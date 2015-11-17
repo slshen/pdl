@@ -98,7 +98,7 @@ Property sets are sets of properties:
         JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
     }
 
-So that `oracle_jdbc_template.jdbc` evaluates an oracle jdbc URL.  The evaluation
+So that `oracle_jdbc_template.JDBC_URL` evaluates an oracle jdbc URL.  The evaluation
 takes place in the content of the property set -- names in the set take precedence
 over global names.
 
@@ -124,3 +124,19 @@ Here we define a new property set, that contains all the property definitions of
 `oracle_jdbc_template`.  Note that properties can now be added or to either `DB`
 or `oracle_jdbc_template`.
 
+## Usage
+
+RPL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
+
+    RplParser parser = new RplParser();
+
+    // add one or more sources of property definitions
+    parser.parse(new StringReader("X = 5", "input"))
+
+    // get the resulting evaluation scope
+    RplScope scope = parser.getResult();
+
+    // get a value
+    System.out.println(scope.get("X"));
+
+    

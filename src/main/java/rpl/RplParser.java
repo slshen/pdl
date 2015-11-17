@@ -7,8 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.annotations.VisibleForTesting;
-
 public class RplParser {
 
 	private final Map<String, RplAssignment> assignments = new LinkedHashMap<>();
@@ -19,7 +17,7 @@ public class RplParser {
 	public RplParser() {
 	}
 
-	@VisibleForTesting
+	//@VisibleForTesting
 	Map<String, RplAssignment> getAssignments() {
 		return assignments;
 	}
