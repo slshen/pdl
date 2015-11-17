@@ -3,19 +3,17 @@ package rpl;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class RplScope extends ExpressionScope {
 
 	private static final Object NULL = new Object();
 	private final Map<String, RplAssignment> assignments;
-	private final ConcurrentMap<String, Object> cache = new ConcurrentHashMap<>();
+	private final Map<String, Object> cache = new HashMap<>();
 
 	public RplScope(Map<String, RplAssignment> assignments) {
 		this.assignments = assignments;
 	}
-	
+
 	public Object get(String name) {
 		return eval(name);
 	}
@@ -75,8 +73,7 @@ public class RplScope extends ExpressionScope {
 			Object value) {
 		if (conditionalAssignment.isAppend()) {
 			if (result != null && !(result instanceof RplPropertySet)) {
-				throw evalException(conditionalAssignment,
-						"cannot append property sets to non-property sets", null);
+				throw evalException(conditionalAssignment, "cannot append property sets to non-property sets", null);
 			}
 		}
 		RplPropertySet rightPropertySet = (RplPropertySet) value;
@@ -93,8 +90,7 @@ public class RplScope extends ExpressionScope {
 		return propertySet;
 	}
 
-	private Object applyPropertySetNodeAssignment(RplConditionalAssignment conditionalAssignment,
-			Object result) {
+	private Object applyPropertySetNodeAssignment(RplConditionalAssignment conditionalAssignment, Object result) {
 		RplPropertySet propertySet;
 		if (result == null) {
 			propertySet = new RplPropertySet(this);
@@ -106,11 +102,20 @@ public class RplScope extends ExpressionScope {
 		propertySet.getExpressionNodes().putAll(conditionalAssignment.getPropertySet().getProperties());
 		return propertySet;
 	}
-	
+
 	public Map<String, Object> toMap() {
 		Map<String, Object> result = new HashMap<>();
 		for (String name : assignments.keySet()) {
-			result.put(name, get(name));
+			Object value = get(name);
+			if (value instanceof RplPropertySet) {
+				RplPropertySet propertySet = (RplPropertySet) value;
+				for (String propertyName : propertySet.getExpressionNodes().keySet()) {
+					Object propertyValue = propertySet.eval(propertyName);
+					result.put(name + "." + propertyName, propertyValue);
+				}
+			} else {
+				result.put(name, value);
+			}
 		}
 		return result;
 	}

@@ -48,6 +48,8 @@ class Evaluator extends ValueFunctions {
 				value = new LinkedHashSet<Object>((Set<?>) value);
 			} else if (value instanceof Collection<?>) {
 				value = new ArrayList<Object>((Collection<?>) value);
+			} else if (value instanceof RplPropertySet) {
+				value = new RplPropertySet((RplPropertySet) value);
 			}
 			setValue(rplGetValueNode, value);
 		}

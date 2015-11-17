@@ -12,6 +12,11 @@ public class RplPropertySet extends ExpressionScope {
 		this.scope = scope;
 	}
 
+	public RplPropertySet(RplPropertySet value) {
+		this.scope = value.scope;
+		this.expressionNodes.putAll(value.expressionNodes);
+	}
+
 	Map<String, RplExpressionNode> getExpressionNodes() {
 		return expressionNodes;
 	}

@@ -131,12 +131,18 @@ RPL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
     RplParser parser = new RplParser();
 
     // add one or more sources of property definitions
-    parser.parse(new StringReader("X = 5", "input"))
+    parser.parse(new StringReader("X = 5", "input"));
+    parser.parse(new StringReader("Y = { host: 'foo' }");
 
-    // get the resulting evaluation scope
-    RplScope scope = parser.getResult();
+    // get a result map
+    Map<String,Object> config = parser.getResult().toMap();
+    System.out.println(config.get("X")); // output: 5
 
-    // get a value
-    System.out.println(scope.get("X"));
+    // property sets keys are flattened
+    System.out.println(config.get("Y.host")); // output: foo
+
+Neither `RplParser` nor `RplScope` are thread-safe at this time.  However, the resulting
+`Map<String,Object>` from `scope.toMap()` is completely thread-safe.
+
 
     
