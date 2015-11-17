@@ -123,7 +123,7 @@ public class RplParser {
 	/*
 	 * property_set = '{' property_def (',' property_def)* '}'
 	 * 
-	 * property_def = ID ':' expression
+	 * property_def = ID '=' expression
 	 */
 	private RplPropertySetNode parsePropertySet() throws IOException {
 		int t = tokenizer.nextToken();
@@ -134,8 +134,8 @@ public class RplParser {
 		while (true) {
 			String name = tokenizer.getTokenValue();
 			t = tokenizer.nextToken();
-			if (t != ':') {
-				throw syntaxError("property name must be followed by ':'");
+			if (t != '=') {
+				throw syntaxError("property name must be followed by '='");
 			}
 			RplExpressionNode expression = parseExpression();
 			propertySet.getProperties().put(name, expression);

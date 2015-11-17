@@ -14,8 +14,9 @@ Properties can be defined in terms of other properties:
 
     SAY = GREETING + ", " + SUBJECT
 
-Property definitions can be conditional (including nested conditions), and can
-replace the definition of a property, or append values to a property.
+Property definitions can be conditional (including nested conditions),
+and can replace the definition of a property, or append values to a
+property.
 
     if (IS_NOISY) {
       GREETING = "(shouting) hello"
@@ -35,21 +36,26 @@ A property may be defined in one of the following ways:
 1. Simple assignment in the form `PROPERTY_NAME = expression`.
 
 2. Appending assignment in the form `PROPERTY_NAME += expression`.
-Appending works as follows: if both values are numbers (or can be
-parsed as numbers), the result is the sum; if the existing value is
-null the result is the new value; if the existing value is a
-collection, the new values are added to the collection; if the
-existing value is a map, the new value must also be a map, and the map
-is extended with the new values.  Otherwise, the string values are
-appended.
+This changes the definition of the property to append the value
+of `expression` to the previous definition.
+
+    At evaluation time, Appending works as follows: if both values are
+    numbers (or can be parsed as numbers), the result is the sum; if
+    the existing value is null the result is the new value; if the
+    existing value is a collection, the new values are added to the
+    collection; if the existing value is a map, the new value must
+    also be a map, and the map is extended with the new values.
+    Otherwise, the string values are appended.
 
 3. Overriding assignment in the form `PROPERTY_NAME := expression`.  Sets
 the value of a property, and does not evaluate any more rules.
 
-3. Conditional assignments, in the form `if (expression) { assignments ... }`.
-An expression is true if it's equal to the literal string "true", or is 
-`Boolean.TRUE`, or is a non-zero number, or is a non-empty collection or
-map.
+3. Conditional assignments, in the form `if (expression) { assignments
+... }`.
+
+    An expression is true if it's equal to the literal string "true",
+    or is `Boolean.TRUE`, or is a non-zero number, or is a non-empty
+    collection or map.
 
 4. Property sets, explained below.
 
@@ -86,17 +92,19 @@ can be used for membership testing.
 
 The following are also supported:
 
-* Attribute access via `.name` will access the public field `name` on the java object,
-or call `getName()`, or if the object is a map return the value associated with `name`,
-or if the object is a property set, return the value of the property.
+* Attribute access via `.name` will access the public field `name` on
+the java object, or call `getName()`, or if the object is a map return
+the value associated with `name`, or if the object is a property set,
+return the value of the property.
 
 * Method invocation via `.name( args .. )` calls a java method.  (No current
 syntax exists to invoke a static method.)
 
 * Subscripting arrays, collections, and maps via `[ expression ]`.
 
-* Creating new java objects can be created with `new class-name( arguments ... )`.  The
-class name must be fully qualified unless it's in `java.lang` or `java.util`.
+* Creating new java objects can be created with `new class-name(
+arguments ... )`.  The class name must be fully qualified unless it's
+in `java.lang` or `java.util`.
 
 * Property reference via `NAME`, or `NAME.property` (for property sets.)
 
@@ -108,9 +116,9 @@ Property sets are sets of properties:
         JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
     }
 
-So that `oracle_jdbc_template.JDBC_URL` evaluates an oracle jdbc URL.  The evaluation
-takes place in the content of the property set -- names in the set take precedence
-over global names.
+So that `oracle_jdbc_template.JDBC_URL` evaluates an oracle jdbc URL.
+The evaluation takes place in the content of the property set -- names
+in the set take precedence over global names.
 
 Property sets can extended:
 
@@ -130,9 +138,13 @@ Property sets may be assigned to other properties.
         DB = oracle_jdbc_template
     }
 
-Here we define a new property set, that contains all the property definitions of
-`oracle_jdbc_template`.  Note that properties can now be added or to either `DB`
-or `oracle_jdbc_template`.
+Here we define a new property set that contains all the property
+definitions of `oracle_jdbc_template`.
+
+Note that `DB` and `oracle_jdbc_template` are two different property
+sets -- properties added to `DB` will not change the property
+definitions in `oracle_jdbc_template`.  (The converse, however, is not
+true.)
 
 ## Usage
 
@@ -151,8 +163,9 @@ RPL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
     // property sets keys are flattened
     System.out.println(config.get("Y.host")); // output: foo
 
-Neither `RplParser` nor `RplScope` are thread-safe at this time.  However, the resulting
-`Map<String,Object>` from `scope.toMap()` is completely thread-safe.
+Neither `RplParser` nor `RplScope` are thread-safe.  However, the
+resulting `Map<String,Object>` from `scope.toMap()` is completely
+thread-safe.
 
 
     
