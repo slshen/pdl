@@ -395,7 +395,9 @@ public class RplParser {
 	}
 
 	/*
-	 * dict_entries = dict_entry (',' dict_entry)* dict_entry = (( ID | STRING )
+	 * dict_entries = dict_entry (',' dict_entry)*
+	 * 
+	 *  dict_entry = (( ID | STRING )
 	 * ':' expression)
 	 */
 	private void parseDictEntries(RplDictNode node) throws IOException {

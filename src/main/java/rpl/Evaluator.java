@@ -200,6 +200,7 @@ class Evaluator extends ValueFunctions {
 				}
 				break;
 			}
+			// TODO - NEQ, >, <, GTE, LTE
 			case '-': {
 				if (leftValue instanceof Collection<?>) {
 					List<Object> list = new ArrayList<>();
@@ -210,6 +211,16 @@ class Evaluator extends ValueFunctions {
 						list.remove(rightValue);
 					}
 					result = list;
+				} else if (leftValue instanceof Map<?,?>) {
+					@SuppressWarnings("unchecked")
+					Map<Object, Object> map = (Map<Object,Object>) leftValue;
+					if (rightValue instanceof Collection<?>) {
+						for (Object element : (Collection<?>) rightValue) {
+							map.remove(element);
+						}
+					} else {
+						map.remove(rightValue);
+					}
 				} else {
 					BigDecimal leftNumber = scope.asBigDecimal(leftValue);
 					BigDecimal rightNumber = scope.asBigDecimal(rightValue);
