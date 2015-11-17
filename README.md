@@ -98,6 +98,8 @@ syntax exists to invoke a static method.)
 * Creating new java objects can be created with `new class-name( arguments ... )`.  The
 class name must be fully qualified unless it's in `java.lang` or `java.util`.
 
+* Property reference via `NAME`, or `NAME.property` (for property sets.)
+
 ## Property Sets
 
 Property sets are sets of properties:
