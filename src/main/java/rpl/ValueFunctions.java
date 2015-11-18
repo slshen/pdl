@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Map;
 
-public class ValueFunctions {
+public abstract class ValueFunctions {
 
 	public String stringValueOf(Object value) {
 		return value != null ? String.valueOf(value) : "";

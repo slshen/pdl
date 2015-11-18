@@ -1,0 +1,24 @@
+oracle_jdbc_template = {
+    JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
+}
+
+if (ENV == "dev") {
+   oracle_jdbc_template += {
+       host = "oracledev-" + APP_ID + ".example.com",
+       port = 1521,
+       service = "dev"
+   }
+}
+if (DB_TYPE == "oracle") {
+    DB = oracle_jdbc_template
+}
+
+DB_TYPE = "oracle"
+APP_ID = "ex2"
+ENV = "dev"
+
+DB_1522 = oracle_jdbc_template
+DB_1522 += {
+   port = 1522
+}
+

@@ -7,8 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.annotations.VisibleForTesting;
-
 public class RplParser {
 
 	private final Map<String, RplAssignment> assignments = new LinkedHashMap<>();
@@ -19,7 +17,7 @@ public class RplParser {
 	public RplParser() {
 	}
 
-	@VisibleForTesting
+	//@VisibleForTesting
 	Map<String, RplAssignment> getAssignments() {
 		return assignments;
 	}
@@ -125,7 +123,7 @@ public class RplParser {
 	/*
 	 * property_set = '{' property_def (',' property_def)* '}'
 	 * 
-	 * property_def = ID ':' expression
+	 * property_def = ID '=' expression
 	 */
 	private RplPropertySetNode parsePropertySet() throws IOException {
 		int t = tokenizer.nextToken();
@@ -136,8 +134,8 @@ public class RplParser {
 		while (true) {
 			String name = tokenizer.getTokenValue();
 			t = tokenizer.nextToken();
-			if (t != ':') {
-				throw syntaxError("property name must be followed by ':'");
+			if (t != '=') {
+				throw syntaxError("property name must be followed by '='");
 			}
 			RplExpressionNode expression = parseExpression();
 			propertySet.getProperties().put(name, expression);
@@ -395,7 +393,9 @@ public class RplParser {
 	}
 
 	/*
-	 * dict_entries = dict_entry (',' dict_entry)* dict_entry = (( ID | STRING )
+	 * dict_entries = dict_entry (',' dict_entry)*
+	 * 
+	 *  dict_entry = (( ID | STRING )
 	 * ':' expression)
 	 */
 	private void parseDictEntries(RplDictNode node) throws IOException {

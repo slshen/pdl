@@ -7,19 +7,19 @@ ENV = "dev"
 IS_PROD = ENV.startsWith("prod")
 
 ORACLE_URL_TEMPLATE = {
-	PORT : 1521,
-	URL: "jdbc:oracle:thin:@" + HOST + ":" + PORT
+	PORT = 1521,
+	URL = "jdbc:oracle:thin:@" + HOST + ":" + PORT
 }
 
 if (DB_TYPE == "oracle") {
     LC_DB = ORACLE_URL_TEMPLATE
     LC_DB += {
-		HOST: "usdevdb" + APP_NUMBER + ".example.com"
+		HOST = "usdevdb" + APP_NUMBER + ".example.com"
 	}
 }
 
 APP_NUMBER = 22
 LC_DB_URL = LC_DB.URL
 LC_DB += {
-   PORT : 1522
+   PORT = 1522
 }

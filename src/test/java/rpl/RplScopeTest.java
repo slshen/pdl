@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class RplScopeTest extends RplScopeTestFixture {
-	
+
 	@Test
 	public void testOps() throws IOException {
 		RplParser parser = parseFixtures("ops.rpl");
@@ -19,7 +19,7 @@ public class RplScopeTest extends RplScopeTestFixture {
 		Assert.assertEquals("universe", scope.get("SUBJECT"));
 		Assert.assertEquals("hello, universe", scope.get("SAY"));
 	}
-	
+
 	@Test
 	public void testIf() throws IOException {
 		RplParser parser = parseFixtures("ops.rpl");
@@ -27,7 +27,7 @@ public class RplScopeTest extends RplScopeTestFixture {
 		RplScope scope = parser.getResult();
 		Assert.assertEquals("shouting hello, world", scope.get("SAY"));
 	}
-	
+
 	@Test
 	public void testCalls() throws IOException {
 		RplParser parser = parseFixtures("calls.rpl");
@@ -37,14 +37,14 @@ public class RplScopeTest extends RplScopeTestFixture {
 		Assert.assertTrue(path instanceof String);
 		Assert.assertEquals(12, scope.get("Z"));
 	}
-	
+
 	@Test
-	public void testMaps() throws IOException { 
+	public void testMaps() throws IOException {
 		RplParser parser = parseFixtures("maps.rpl");
 		RplScope scope = parser.getResult();
 		Assert.assertEquals("hello, world", scope.get("SAY"));
 	}
-	
+
 	@Test
 	public void testToMap() throws IOException {
 		RplParser parser = parseFixtures("calls.rpl");
@@ -52,13 +52,25 @@ public class RplScopeTest extends RplScopeTestFixture {
 		Assert.assertEquals(12, map.get("Z"));
 		Assert.assertEquals(Boolean.TRUE, map.get("IS_PROD"));
 	}
-	
+
 	@Test
 	public void testT1() throws IOException {
 		RplParser parser = parseFixtures("t1.rpl");
 		parser.parse(new StringReader("DB_TYPE = 'oracle'"), "input");
 		RplScope scope = parser.getResult();
 		Assert.assertEquals("jdbc:oracle:thin:@usdevdb22.example.com:1522", scope.get("LC_DB_URL"));
+	}
+
+	@Test
+	public void testEx2() throws IOException {
+		RplParser parser = parseFixtures("ex2.rpl");
+		RplScope scope = parser.getResult();
+		String jdbcUrl = (String) ((RplPropertySet) scope.get("DB")).eval("JDBC_URL");
+		Assert.assertEquals("jdbc:oracle:thin:@oracledev-ex2.example.com:1521/dev", jdbcUrl);
+		Map<String, Object> map = scope.toMap();
+		//System.out.println(map);
+		Assert.assertEquals("jdbc:oracle:thin:@oracledev-ex2.example.com:1521/dev", map.get("DB.JDBC_URL"));
+		Assert.assertEquals("jdbc:oracle:thin:@oracledev-ex2.example.com:1522/dev", map.get("DB_1522.JDBC_URL"));
 	}
 
 }

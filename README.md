@@ -1,51 +1,171 @@
 # Recursive Property Language
 
-Like a properties file, in that we can define properties:
+RPL is a little language for defining properties:
 
+    # both shell-style line comments
+    // and java-style line comments
+    /*
+     * and block comments are ok
+     */
     GREETING = "hello"
     SUBJECT = "world"
 
-Except we can define properties in terms of other properties:
+Properties can be defined in terms of other properties:
 
     SAY = GREETING + ", " + SUBJECT
-    
-We can also introduce conditions:
 
-    if (ENV == 'dev') {
+Property definitions can be conditional (including nested conditions),
+and can replace the definition of a property, or append values to a
+property.
+
+    if (IS_NOISY) {
       GREETING = "(shouting) hello"
-    }
-    if (ENV == 'prod') {
-      GREETING = "(whispering) hello"
+      SAY += "!"
     }
 
-Conditions can be nested:
-
-    if (ENV != "prod") {
-      AUTH_SERVICE = "https://nonprod-auth.example.com/"
-      WORKFLOW_SERVICE = "https://nonprod-wf.example.com/"
-      if (ENV == "demo") {
-         WORKFLOW_SERVICE = "https://demo-wf.example.com/"
-      }
-    }
-
-Unlike in most programmig languages, properties are not evaluated
+Property definitions are declarative.  Property values are not evaluated
 and assigned in order.  Instead, properties are evaluated as-needed
-recursively.  For example:
+recursively.
 
-    Z = X + 1
-    if (Y == 0) {
-       Z = X + 2
+Rule order is important, later rules take precedence over earlier rules.
+
+## Property Definitions
+
+A property may be defined in one of the following ways:
+
+1. Simple assignment in the form `PROPERTY_NAME = expression`.
+
+2. Appending assignment in the form `PROPERTY_NAME += expression`.
+This changes the definition of the property to append the value
+of `expression` to the previous definition.
+
+    At evaluation time, appending works as follows: if both values are
+    numbers (or can be parsed as numbers), the result is the sum; if
+    the existing value is null the result is the new value; if the
+    existing value is a collection, the new values are added to the
+    collection; if the existing value is a map, the new value must
+    also be a map, and the map is extended with the new values.
+    Otherwise, the string values are appended.
+
+3. Overriding assignment in the form `PROPERTY_NAME := expression`.  Sets
+the value of a property, and does not evaluate any more rules.
+
+3. Conditional assignments, in the form `if (expression) { assignments
+... }`.
+
+    An expression is true if it's equal to the literal string "true",
+    or is `Boolean.TRUE`, or is a non-zero number, or is a non-empty
+    collection or map.
+
+4. Property sets, explained below.
+
+## Expressions
+
+Literal values may be:
+
+* Strings, in either `'single'` or `"double"` quotes, or in python-style `"""triple"""` quotes.
+
+* Numbers
+
+* The literals `true` or `false`.
+
+* A literal list may be written with `[` and `]`.
+
+* A literal map may be written as `{ name: expression }`.  The `name` may be enclosed in quotes.
+
+* A literal set may be written as `{ expression , ... }`.
+
+Most java operators are supported:
+
+* The binary operators `+ - * / % << >> | & ^` are supported.  For `+` the
+rules are the same of the `+=` assignment operator described above.
+For `-`, if the left value is a collection, the right value or values
+are removed; if the left value is a map, the right value or values are
+removed; otherwise it's the arithmetic difference of the two values.
+
+* The comparison operators `== != >= <=`.  In addition, `in` and `not in`
+can be used for membership testing.
+
+* The unary operators `! ~ + -`.
+
+* The short-cut logical `&&` and `||` operators work as in java.
+
+The following are also supported:
+
+* Attribute access via `.name` will access the public field `name` on
+the java object, or call `getName()`, or if the object is a map return
+the value associated with `name`, or if the object is a property set,
+return the value of the property.
+
+* Method invocation via `.name( args .. )` calls a java method.  (No current
+syntax exists to invoke a static method.)
+
+* Subscripting arrays, collections, and maps via `[ expression ]`.
+
+* Creating new java objects can be created with `new class-name(
+arguments ... )`.  The class name must be fully qualified unless it's
+in `java.lang` or `java.util`.
+
+* Property reference via `NAME`, or `NAME.property` (for property sets.)
+
+## Property Sets
+
+Property sets are sets of properties:
+
+    oracle_jdbc_template = {
+        JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
     }
-    if (Y == 1) {
-       Z = X * 2
+
+So that `oracle_jdbc_template.JDBC_URL` evaluates an oracle jdbc URL.
+The evaluation takes place in the content of the property set -- names
+in the set take precedence over global names.
+
+Property sets can extended:
+
+    if (ENV == "dev") {
+       oracle_jdbc_template += {
+           host = "oracledev-" + APP_ID + "example.com"
+           port = 1521
+           service = "dev"
+       }
     }
-    X = Y + 1
 
-To evaulate `Z`, when `Y = 1`
+In this case, we establish some defaults if we're running in `dev`.
 
-1. Calculate `X + 1`, which is `Y + 1`, which is 2.  This is our
-intitial, temporary answer for `Z`.
-2. See if `Y == 0` -- it isn't so stick with 2.
-3. See if `Y == 1` -- it is, so evaluate `X * 2` which is 4.  This is
-our new temporary answer for `Z`.
-4. There are no further assignments to `Z`, so the final answer is 4.
+Property sets may be assigned to other properties.
+
+    if (DB_TYPE == "oracle") {
+        DB = oracle_jdbc_template
+    }
+
+Here we define a new property set that contains all the property
+definitions of `oracle_jdbc_template`.
+
+Note that `DB` and `oracle_jdbc_template` are two different property
+sets -- properties added to `DB` will not change the property
+definitions in `oracle_jdbc_template`.  (The converse, however, is not
+true.)
+
+## Usage
+
+RPL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
+
+    RplParser parser = new RplParser();
+
+    // add one or more sources of property definitions
+    parser.parse(new StringReader("X = 5", "input"));
+    parser.parse(new StringReader("Y = { host: 'foo' }");
+
+    // get a result map
+    Map<String,Object> config = parser.getResult().toMap();
+    System.out.println(config.get("X")); // output: 5
+
+    // property sets keys are flattened
+    System.out.println(config.get("Y.host")); // output: foo
+
+Neither `RplParser` nor `RplScope` are thread-safe.  However, the
+resulting `Map<String,Object>` from `scope.toMap()` is completely
+thread-safe.
+
+
+    

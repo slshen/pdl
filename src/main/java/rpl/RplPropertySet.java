@@ -1,6 +1,7 @@
 package rpl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RplPropertySet extends ExpressionScope {
@@ -10,6 +11,11 @@ public class RplPropertySet extends ExpressionScope {
 
 	public RplPropertySet(RplScope scope) {
 		this.scope = scope;
+	}
+
+	public RplPropertySet(RplPropertySet value) {
+		this.scope = value.scope;
+		this.expressionNodes.putAll(value.expressionNodes);
 	}
 
 	Map<String, RplExpressionNode> getExpressionNodes() {
@@ -23,6 +29,11 @@ public class RplPropertySet extends ExpressionScope {
 			return new Evaluator(this).eval(node);
 		}
 		return scope.eval(name);
+	}
+
+	@Override
+	List<RplExpressionNode> getTrace() {
+		return scope.getTrace();
 	}
 
 }

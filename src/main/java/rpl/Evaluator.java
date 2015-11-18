@@ -48,6 +48,8 @@ class Evaluator extends ValueFunctions {
 				value = new LinkedHashSet<Object>((Set<?>) value);
 			} else if (value instanceof Collection<?>) {
 				value = new ArrayList<Object>((Collection<?>) value);
+			} else if (value instanceof RplPropertySet) {
+				value = new RplPropertySet((RplPropertySet) value);
 			}
 			setValue(rplGetValueNode, value);
 		}
@@ -200,6 +202,7 @@ class Evaluator extends ValueFunctions {
 				}
 				break;
 			}
+				// TODO - NEQ, >, <, GTE, LTE
 			case '-': {
 				if (leftValue instanceof Collection<?>) {
 					List<Object> list = new ArrayList<>();
@@ -210,6 +213,16 @@ class Evaluator extends ValueFunctions {
 						list.remove(rightValue);
 					}
 					result = list;
+				} else if (leftValue instanceof Map<?, ?>) {
+					@SuppressWarnings("unchecked")
+					Map<Object, Object> map = (Map<Object, Object>) leftValue;
+					if (rightValue instanceof Collection<?>) {
+						for (Object element : (Collection<?>) rightValue) {
+							map.remove(element);
+						}
+					} else {
+						map.remove(rightValue);
+					}
 				} else {
 					BigDecimal leftNumber = scope.asBigDecimal(leftValue);
 					BigDecimal rightNumber = scope.asBigDecimal(rightValue);
@@ -443,6 +456,10 @@ class Evaluator extends ValueFunctions {
 
 	void setValue(RplExpressionNode expression, Object value) {
 		scope.getValues().put(expression, value);
+		List<RplExpressionNode> trace = scope.getTrace();
+		if (trace != null) {
+			trace.add(expression);
+		}
 	}
 
 	public Object eval(RplExpressionNode expr) {
