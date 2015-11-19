@@ -1,6 +1,7 @@
 package rpl.tool;
 
 import java.io.FileReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -27,6 +28,18 @@ public class RplMain {
 					i++;
 				} else if (args[i].equals("--help")) {
 					usage(null);
+				} else if (args[i].equals("--set")) {
+					if (i + 1 == args.length) {
+						usage("not enough arguments for --set");
+					}
+					String arg = args[i + 1];
+					int equals = arg.indexOf('=');
+					if (equals < 0) {
+						usage("--set should be in form property=value");
+					}
+					parser.parse(new StringReader(arg.substring(0, equals) + ":= '" + arg.substring(equals + 1) + "'"),
+							"argv[" + (i + 1) + "]");
+					i++;
 				} else {
 					parser.parse(new FileReader(args[i]), args[i]);
 				}
@@ -46,7 +59,7 @@ public class RplMain {
 				properties.store(System.out, null);
 			} else {
 				for (String name : explains) {
-					parser.explain(name);
+					System.out.println(parser.explain(name));
 				}
 			}
 		} catch (Exception e) {
@@ -58,7 +71,7 @@ public class RplMain {
 	private static void usage(String msg) {
 		if (msg != null)
 			System.err.println(msg);
-		System.err.println("usage: rpl --explain property file ...");
+		System.err.println("usage: rpl [--explain property] [--set property:=value] file ...");
 		System.exit(msg == null ? 0 : 1);
 	}
 
