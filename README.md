@@ -163,9 +163,40 @@ RPL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
     // property sets keys are flattened
     System.out.println(config.get("Y.host")); // output: foo
 
+    // or fill in a java.util.Properties, which will
+    // flatten as in toMap(), but also convert all values
+    // to strings
+    Properties properties = new Properties();
+    parser.getResult().toProperties(properties);
+
 Neither `RplParser` nor `RplScope` are thread-safe.  However, the
 resulting `Map<String,Object>` from `scope.toMap()` is completely
 thread-safe.
 
+## Diagnostics
 
-    
+The build includes an executable `rpl-tool-<version>.jar` jar file.
+It reads in RPL config files, and prints out the result to `toProperties()`.
+
+Examples:
+
+    $ java -jar rpl-tool-0.1.jar ex2.rpl
+    #Wed Nov 18 20:54:13 PST 2015
+    APP_ID=ex2
+    DB.JDBC_URL=jdbc\:oracle\:thin\:@oracledev-ex2.example.com\:1521/dev
+    DB.host=oracledev-ex2.example.com
+    DB.port=1521
+    DB.service=dev
+    ...
+
+It can also explain where results come form.
+
+    $ java -jar rpl-tool-0.1.jar --explain DB_1522.JDBC_URL ex2.rpl 
+    # DB_1522.JDBC_URL = jdbc:oracle:thin:@oracledev-ex2.example.com:1522/dev
+    # comes from the property JDBC_URL on DB_1522
+    ex2.rpl:2     JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
+    # the property set DB_1522 comes from
+    ex2.rpl:21 DB_1522 += {
+    # and
+    ex2.rpl:20 DB_1522 = oracle_jdbc_template
+
