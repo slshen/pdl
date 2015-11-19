@@ -32,7 +32,7 @@ public class RplPropertySet extends ExpressionScope {
 	}
 
 	@Override
-	List<RplExpressionNode> getTrace() {
+	List<RplNode> getTrace() {
 		return scope.getTrace();
 	}
 

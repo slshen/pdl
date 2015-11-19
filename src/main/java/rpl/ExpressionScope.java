@@ -10,7 +10,7 @@ abstract class ExpressionScope extends ValueFunctions {
 
 	abstract Object eval(String name);
 	
-	abstract List<RplExpressionNode> getTrace();
+	abstract List<RplNode> getTrace();
 
 	Map<RplExpressionNode, Object> getValues() { return values; }
 

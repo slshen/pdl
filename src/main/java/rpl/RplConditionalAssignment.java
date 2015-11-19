@@ -4,12 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RplConditionalAssignment extends RplNode {
-	
+
+	private final String name;
 	private final List<RplExpressionNode> conditions = new ArrayList<>();
 	private RplPropertySetNode propertySet;
 	private RplExpressionNode value;
 	private boolean override;
 	private boolean append;
+	
+	public RplConditionalAssignment(String name) {
+		this.name =name;
+	}
+	
+	public String getName() {
+		return name;
+	}
 
 	public List<RplExpressionNode> getConditions() {
 		return conditions;

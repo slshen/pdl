@@ -10,18 +10,18 @@ public class RplScope extends ExpressionScope {
 	private static final Object NULL = new Object();
 	private final Map<String, RplAssignment> assignments;
 	private final Map<String, Object> cache = new HashMap<>();
-	private List<RplExpressionNode> trace;
+	private List<RplNode> trace;
 
 	RplScope(Map<String, RplAssignment> assignments) {
 		this.assignments = assignments;
 	}
 	
 	@Override
-	List<RplExpressionNode> getTrace() {
+	List<RplNode> getTrace() {
 		return trace;
 	}
 	
-	void setTrace(List<RplExpressionNode> trace) {
+	void setTrace(List<RplNode> trace) {
 		this.trace = trace;
 	}
 
@@ -57,6 +57,9 @@ public class RplScope extends ExpressionScope {
 				if (!isTrue(new Evaluator(this).eval(cond))) {
 					continue assignment;
 				}
+			}
+			if (trace != null) {
+				trace.add(conditionalAssignment);
 			}
 			RplPropertySetNode propertySetNode = conditionalAssignment.getPropertySet();
 			if (propertySetNode != null) {
