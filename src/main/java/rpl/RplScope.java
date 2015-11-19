@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Properties;
 
 public class RplScope extends ExpressionScope {
 
@@ -132,6 +133,14 @@ public class RplScope extends ExpressionScope {
 			}
 		}
 		return result;
+	}
+
+	public Properties toProperties(Properties properties) {
+		Map<String, Object> map = toMap();
+		for (Map.Entry<String, Object> entry : map.entrySet()) {
+			properties.setProperty(entry.getKey(), stringValueOf(entry.getValue()));
+		}
+		return properties;
 	}
 
 }
