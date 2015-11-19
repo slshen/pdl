@@ -102,7 +102,7 @@ public class RplParser {
 		if (t != '=' && t == Tokenizer.COLON_EQ && t == Tokenizer.PLUS_EQ) {
 			throw syntaxError("expecting an assignment operator");
 		}
-		RplConditionalAssignment cond = create(new RplConditionalAssignment());
+		RplConditionalAssignment cond = create(new RplConditionalAssignment(assignment.getName()));
 		cond.getConditions().addAll(conditions);
 		if (t == Tokenizer.COLON_EQ) {
 			cond.setOverride(true);

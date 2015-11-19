@@ -456,7 +456,7 @@ class Evaluator extends ValueFunctions {
 
 	void setValue(RplExpressionNode expression, Object value) {
 		scope.getValues().put(expression, value);
-		List<RplExpressionNode> trace = scope.getTrace();
+		List<RplNode> trace = scope.getTrace();
 		if (trace != null) {
 			trace.add(expression);
 		}

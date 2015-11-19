@@ -8,8 +8,10 @@ public class RplDiagTest extends RplScopeTestFixture {
 	
 	@Test
 	public void testExplain() throws IOException {
-		RplParser parser = parseFixtures("ex2.rpl");
-		System.out.println(RplDiag.explain(parser, "DB.JDBC_URL"));
+		RplDiag parser = new RplDiag();
+		parseFixtures(parser, "ex2.rpl");
+		System.out.println(parser.explain("DB.JDBC_URL"));
+		System.out.println(parser.explain("DB_1522.JDBC_URL"));
 	}
 
 }

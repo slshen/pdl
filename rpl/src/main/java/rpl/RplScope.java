@@ -4,24 +4,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Properties;
 
 public class RplScope extends ExpressionScope {
 
 	private static final Object NULL = new Object();
 	private final Map<String, RplAssignment> assignments;
 	private final Map<String, Object> cache = new HashMap<>();
-	private List<RplExpressionNode> trace;
+	private List<RplNode> trace;
 
 	RplScope(Map<String, RplAssignment> assignments) {
 		this.assignments = assignments;
 	}
 	
 	@Override
-	List<RplExpressionNode> getTrace() {
+	List<RplNode> getTrace() {
 		return trace;
 	}
 	
-	void setTrace(List<RplExpressionNode> trace) {
+	void setTrace(List<RplNode> trace) {
 		this.trace = trace;
 	}
 
@@ -57,6 +58,9 @@ public class RplScope extends ExpressionScope {
 				if (!isTrue(new Evaluator(this).eval(cond))) {
 					continue assignment;
 				}
+			}
+			if (trace != null) {
+				trace.add(conditionalAssignment);
 			}
 			RplPropertySetNode propertySetNode = conditionalAssignment.getPropertySet();
 			if (propertySetNode != null) {
@@ -129,6 +133,14 @@ public class RplScope extends ExpressionScope {
 			}
 		}
 		return result;
+	}
+
+	public Properties toProperties(Properties properties) {
+		Map<String, Object> map = toMap();
+		for (Map.Entry<String, Object> entry : map.entrySet()) {
+			properties.setProperty(entry.getKey(), stringValueOf(entry.getValue()));
+		}
+		return properties;
 	}
 
 }
