@@ -1,6 +1,6 @@
-# Recursive Property Language
+# Property Definition Language
 
-RPL is a little language for defining properties:
+PDL is a little language for defining properties:
 
     # both shell-style line comments
     // and java-style line comments
@@ -148,9 +148,9 @@ true.)
 
 ## Usage
 
-RPL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
+PDL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
 
-    RplParser parser = new RplParser();
+    PdlParser parser = new PdlParser();
 
     // add one or more sources of property definitions
     parser.parse(new StringReader("X = 5", "input"));
@@ -169,18 +169,18 @@ RPL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
     Properties properties = new Properties();
     parser.getResult().toProperties(properties);
 
-Neither `RplParser` nor `RplScope` are thread-safe.  However, the
+Neither `PdlParser` nor `PdlScope` are thread-safe.  However, the
 resulting `Map<String,Object>` from `scope.toMap()` is completely
 thread-safe.
 
 ## Diagnostics
 
-The build includes an executable `rpl-tool-<version>.jar` jar file.
-It reads in RPL config files, and prints out the result to `toProperties()`.
+The build includes an executable `pdl-tool-<version>.jar` jar file.
+It reads in PDL config files, and prints out the result to `toProperties()`.
 
 Examples:
 
-    $ java -jar rpl-tool-0.1.jar ex2.rpl
+    $ java -jar pdl-tool-0.1.jar ex2.pdl
     #Wed Nov 18 20:54:13 PST 2015
     APP_ID=ex2
     DB.JDBC_URL=jdbc\:oracle\:thin\:@oracledev-ex2.example.com\:1521/dev
@@ -191,12 +191,12 @@ Examples:
 
 It can also explain where results come form.
 
-    $ java -jar rpl-tool-0.1.jar --explain DB_1522.JDBC_URL ex2.rpl 
+    $ java -jar pdl-tool-0.1.jar --explain DB_1522.JDBC_URL ex2.pdl 
     # DB_1522.JDBC_URL = jdbc:oracle:thin:@oracledev-ex2.example.com:1522/dev
     # comes from the property JDBC_URL on DB_1522
-    ex2.rpl:2     JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
+    ex2.pdl:2     JDBC_URL = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service
     # the property set DB_1522 comes from
-    ex2.rpl:21 DB_1522 += {
+    ex2.pdl:21 DB_1522 += {
     # and
-    ex2.rpl:20 DB_1522 = oracle_jdbc_template
+    ex2.pdl:20 DB_1522 = oracle_jdbc_template
 
