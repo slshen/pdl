@@ -1,0 +1,24 @@
+A = 10
+B = 7
+PLUS = A + B
+MINUS = A - B
+NEG = -A
+POS = +B
+MOD = A % B
+OR = A | B
+AND = A & B
+XOR = A ^ B
+SR = A >> 1
+SL = B << 2
+EQ = A == B
+NEQ = A != B
+S = [ 1, 2, 3, 4, 5 ] 
+IN = A in S
+NIN = A not in S
+LOR = A || B
+LAND = A && B
+DIV = A / B
+MUL = A * B
+
+
+

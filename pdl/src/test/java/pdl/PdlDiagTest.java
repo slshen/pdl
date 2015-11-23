@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import pdl.PdlDiag;
 
-public class RplDiagTest extends RplScopeTestFixture {
+public class PdlDiagTest extends PdlScopeTestFixture {
 	
 	@Test
 	public void testExplain() throws IOException {

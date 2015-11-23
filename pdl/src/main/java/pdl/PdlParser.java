@@ -128,7 +128,7 @@ public class PdlParser {
 	private PdlPropertySetNode parsePropertySet() throws IOException {
 		int t = tokenizer.nextToken();
 		if (t != Tokenizer.ID) {
-			throw syntaxError("property set must be in form 'ID: expression'");
+			throw syntaxError("property set must be in form 'ID = expression'");
 		}
 		PdlPropertySetNode propertySet = create(new PdlPropertySetNode());
 		while (true) {
@@ -229,11 +229,24 @@ public class PdlParser {
 		tokenizer.pushback();
 		return expression;
 	}
+	
+	/*
+	 * expr: xor_expr ('|' xor_expr)*
+	 *
+	 */
+	private PdlExpressionNode parseExpr() throws IOException {
+		PdlExpressionNode expression = parseXorExpr();
+		while (tokenizer.nextToken() == '|') {
+			expression = createBinaryOperatorNode(expression, '|').withRight(parseXorExpr());
+		}
+		tokenizer.pushback();
+		return expression;
+	}
 
 	/*
 	 * xor_expr: and_expr ('^' and_expr)*
 	 */
-	private PdlExpressionNode parseExpr() throws IOException {
+	private PdlExpressionNode parseXorExpr() throws IOException {
 		PdlExpressionNode expression = parseAndExpr();
 		while (tokenizer.nextToken() == '^') {
 			expression = createBinaryOperatorNode(expression, '^').withRight(parseAndExpr());

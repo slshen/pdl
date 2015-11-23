@@ -11,11 +11,11 @@ import pdl.PdlParser;
 import pdl.PdlPropertySet;
 import pdl.PdlScope;
 
-public class RplScopeTest extends RplScopeTestFixture {
+public class PdlScopeTest extends PdlScopeTestFixture {
 
 	@Test
-	public void testOps() throws IOException {
-		PdlParser parser = parseFixtures("ops.pdl");
+	public void testHello() throws IOException {
+		PdlParser parser = parseFixtures("hello.pdl");
 		PdlScope scope = parser.getResult();
 		Assert.assertEquals("hello, world", scope.get("SAY"));
 		parser.parse(new StringReader("SUBJECT = 'universe'"), "in");
@@ -26,7 +26,7 @@ public class RplScopeTest extends RplScopeTestFixture {
 
 	@Test
 	public void testIf() throws IOException {
-		PdlParser parser = parseFixtures("ops.pdl");
+		PdlParser parser = parseFixtures("hello.pdl");
 		parser.parse(new StringReader("ENV = 'dev'"), "in");
 		PdlScope scope = parser.getResult();
 		Assert.assertEquals("shouting hello, world", scope.get("SAY"));

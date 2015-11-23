@@ -56,6 +56,7 @@ class Tokenizer {
 						break;
 					}
 					unread(ch);
+					ch = '/';
 				}
 				if (ch == '\"') {
 					if (isTripleQuote(ch)) {
@@ -292,7 +293,7 @@ class Tokenizer {
 	private boolean isDelim(int ch) {
 		return ch == '.' || ch == '{' || ch == '}' || ch == '=' || ch == '+' || ch == '-' || ch == '*' || ch == '/'
 				|| ch == '(' || ch == ')' || ch == '[' || ch == ']' || ch == '?' || ch == ':' || ch == ',' || ch == '|'
-				|| ch == '^' || ch == '&' || ch == '<' || ch == '>' || ch == '=' || ch == '!' || ch == '~';
+				|| ch == '^' || ch == '&' || ch == '<' || ch == '>' || ch == '=' || ch == '!' || ch == '~' || ch == '%';
 	}
 
 	private boolean isTripleQuote(int ch) throws IOException {

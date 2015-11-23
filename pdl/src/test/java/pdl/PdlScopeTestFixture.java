@@ -8,7 +8,7 @@ import org.junit.Assert;
 
 import pdl.PdlParser;
 
-public class RplScopeTestFixture {
+public class PdlScopeTestFixture {
 	public PdlParser parseFixtures(String... fixtureNames) throws IOException {
 		PdlParser parser = new PdlParser();
 		parseFixtures(parser, fixtureNames);

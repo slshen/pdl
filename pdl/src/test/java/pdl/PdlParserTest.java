@@ -12,7 +12,7 @@ import pdl.PdlConditionalAssignment;
 import pdl.PdlConstantNode;
 import pdl.PdlParser;
 
-public class RplParserTest {
+public class PdlParserTest {
 	
 	@Test
 	public void testAssignment() throws IOException {
