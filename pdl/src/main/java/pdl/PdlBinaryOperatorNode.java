@@ -2,11 +2,13 @@ package pdl;
 
 public class PdlBinaryOperatorNode extends PdlExpressionNode {
 	public static final int L_OR = Tokenizer.L_OR, L_AND = Tokenizer.L_AND,
-			LE = Tokenizer.LE, GE = Tokenizer.GE, L_SHIFT = Tokenizer.L_SHIFT,
+			LE = Tokenizer.LTE, GE = Tokenizer.GTE, L_SHIFT = Tokenizer.L_SHIFT,
 			R_SHIFT = Tokenizer.R_SHIFT;
 	public static final int IN = -100, NOT_IN = -101;
 	public static final int EQ = Tokenizer.EQ;
 	public static final int NEQ = Tokenizer.NEQ;
+	public static final int GTE = Tokenizer.GTE;
+	public static final int LTE = Tokenizer.LTE;
 	
 	private PdlExpressionNode left, right;
 	private int operator;

@@ -206,7 +206,7 @@ public class PdlParser {
 	private PdlExpressionNode parseComparison() throws IOException {
 		PdlExpressionNode expression = parseExpr();
 		int t = tokenizer.nextToken();
-		while (t == Tokenizer.EQ || t == Tokenizer.GE || t == Tokenizer.LE || t == Tokenizer.NEQ || t == '>' || t == '<'
+		while (t == Tokenizer.EQ || t == Tokenizer.GTE || t == Tokenizer.LTE || t == Tokenizer.NEQ || t == '>' || t == '<'
 				|| t == Tokenizer.ID) {
 			int operator = t;
 			if (t == Tokenizer.ID) {

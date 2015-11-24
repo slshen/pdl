@@ -186,23 +186,57 @@ class Evaluator extends ValueFunctions {
 				result = scope.plus(rplBinaryOperatorNode, leftValue, rightValue);
 				break;
 			}
-			case PdlBinaryOperatorNode.EQ: {
+			case PdlBinaryOperatorNode.EQ:
+			case PdlBinaryOperatorNode.NEQ:
+			case PdlBinaryOperatorNode.GTE: 
+			case PdlBinaryOperatorNode.LTE:
+			case '>':
+			case '<':
+			{
+				int op = rplBinaryOperatorNode.getOperator();
+				final int cmp;
 				if (leftValue == rightValue) {
-					result = true;
+					cmp = 0;
 				} else if (leftValue != null) {
 					BigDecimal leftNumber = scope.asBigDecimal(leftValue);
 					BigDecimal rightNumber;
 					if (leftNumber != null && ((rightNumber = scope.asBigDecimal(rightValue)) != null)) {
-						result = leftNumber.compareTo(rightNumber) == 0;
+						cmp = leftNumber.compareTo(rightNumber);
+					} else if (leftValue instanceof Comparable && rightValue instanceof Comparable
+							&& leftValue.getClass().isAssignableFrom(rightValue.getClass())) {
+						@SuppressWarnings("unchecked")
+						Comparable<Object> leftCmp = (Comparable<Object>) leftValue;
+						cmp = leftCmp.compareTo(rightValue);
+					} else if (op == PdlBinaryOperatorNode.EQ || op == PdlBinaryOperatorNode.NEQ) {
+						cmp = leftValue.equals(rightValue) ? 0 : 1;
 					} else {
-						result = leftValue.equals(rightValue);
+						throw evalException(rplBinaryOperatorNode, "cannot compare non-Comparable objects", null);
 					}
 				} else {
-					result = false;
+					cmp = 1;
+				}
+				switch (op) {
+				case PdlBinaryOperatorNode.EQ:
+					result = cmp == 0;
+					break;
+				case PdlBinaryOperatorNode.NEQ:
+					result = cmp != 0;
+					break;
+				case PdlBinaryOperatorNode.GTE:
+					result = cmp >= 0;
+					break;
+				case PdlBinaryOperatorNode.LTE:
+					result = cmp <= 0;
+					break;
+				case '>':
+					result = cmp > 0;
+					break;
+				case '<':
+					result = cmp < 0;
+					break;
 				}
 				break;
 			}
-				// TODO - NEQ, >, <, GTE, LTE
 			case '-': {
 				if (leftValue instanceof Collection<?>) {
 					List<Object> list = new ArrayList<>();

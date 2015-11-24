@@ -12,6 +12,10 @@ SR = A >> 1
 SL = B << 2
 EQ = A == B
 NEQ = A != B
+GT = A > B
+LT = A < B
+GTE = A >= B
+LTE = A <= B
 S = [ 1, 2, 3, 4, 5 ] 
 IN = A in S
 NIN = A not in S
