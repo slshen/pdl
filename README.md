@@ -1,5 +1,7 @@
 # Property Definition Language
 
+[![Build Status](https://travis-ci.com/slshen/pdl.svg?branch=master)](https://travis-ci.com/slshen/pdl)
+
 PDL is a little language for defining properties:
 
     # both shell-style line comments
