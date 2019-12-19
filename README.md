@@ -25,11 +25,11 @@ property.
       SAY += "!"
     }
 
-Property definitions are declarative.  Property values are not evaluated
-and assigned in order.  Instead, properties are evaluated as-needed
-recursively.
+Property definitions are declarative - they express rules for
+the values.  Rule order is important, later rules take precedence over
+earlier rules.
 
-Rule order is important, later rules take precedence over earlier rules.
+Property values are calculated once all rules have been read.
 
 ## Property Definitions
 
@@ -80,7 +80,8 @@ Literal values may be:
 Most java operators are supported:
 
 * The binary operators `+ - * / % << >> | & ^` are supported.  For `+` the
-rules are the same of the `+=` assignment operator described above.
+rules are the same of the `+=` assignment operator described above
+(i.e. for maps or collections elements are added.)
 For `-`, if the left value is a collection, the right value or values
 are removed; if the left value is a map, the right value or values are
 removed; otherwise it's the arithmetic difference of the two values.
@@ -152,6 +153,8 @@ true.)
 
 PDL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
 
+```java
+
     PdlParser parser = new PdlParser();
 
     // add one or more sources of property definitions
@@ -170,6 +173,7 @@ PDL has no dependencies other than `slf4j-api`.  It's usage is straightforward:
     // to strings
     Properties properties = new Properties();
     parser.getResult().toProperties(properties);
+```
 
 Neither `PdlParser` nor `PdlScope` are thread-safe.  However, the
 resulting `Map<String,Object>` from `scope.toMap()` is completely
