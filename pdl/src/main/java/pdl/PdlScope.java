@@ -1,3 +1,17 @@
+// Copyright 2019 Sam Shen
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package pdl;
 
 import java.util.HashMap;
@@ -6,6 +20,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * PdlScope represents a set of names and values.
+ */
 public class PdlScope extends ExpressionScope {
 
 	private static final Object NULL = new Object();
@@ -26,6 +43,9 @@ public class PdlScope extends ExpressionScope {
 		this.trace = trace;
 	}
 
+	/**
+	 * Returns the value of <code>name</code> in the current scope.
+	 */
 	public Object get(String name) {
 		return eval(name);
 	}
@@ -118,6 +138,11 @@ public class PdlScope extends ExpressionScope {
 		return propertySet;
 	}
 
+	/**
+	 * Converts the current scope to a <code>Map&lt;String,Object&gt;</code>.
+	 * Nested property values are flattened with "." as a separator
+	 * in their names.
+	 */
 	public Map<String, Object> toMap() {
 		Map<String, Object> result = new HashMap<>();
 		for (String name : assignments.keySet()) {
@@ -135,6 +160,11 @@ public class PdlScope extends ExpressionScope {
 		return result;
 	}
 
+	/**
+	 * Copies the current scope to a <code>Properties</code> object.
+	 * Keys are converted as in {@link #toMap()}.  Values are converted
+	 * to strings (null values are converted to empty strings.)
+	 */
 	public Properties toProperties(Properties properties) {
 		Map<String, Object> map = toMap();
 		for (Map.Entry<String, Object> entry : map.entrySet()) {

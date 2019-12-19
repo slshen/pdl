@@ -1,3 +1,17 @@
+// Copyright 2019 Sam Shen
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package pdl;
 
 import java.io.IOException;
@@ -7,6 +21,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * PdlParser parses a series of input sources in the 
+ * <a href="https://github.com/slshen/pdl">PDL language</a>.
+ * 
+ * @author samshen
+ */
 public class PdlParser {
 
 	private final Map<String, PdlAssignment> assignments = new LinkedHashMap<>();
@@ -22,6 +42,10 @@ public class PdlParser {
 		return assignments;
 	}
 
+	/**
+	 * Returns the top-level scope of all parsed language statements
+	 * so far.
+	 */
 	public PdlScope getResult() {
 		return new PdlScope(new LinkedHashMap<>(assignments));
 	}
@@ -33,12 +57,14 @@ public class PdlParser {
 		return node;
 	}
 
-	/*
-	 * Grammar:
+	/**
+	 * Parses a new source of language statements.  May be called multiple
+	 * times.
 	 * 
-	 * block = (assignment | conditional_block)*
-	 * 
-	 * conditional_block = "if" "(" expression ")" "{" block* "}"
+	 * @param in the textual source of of the statements
+	 * @param filename the name of the source for diagnostic purposes
+	 *   (see {@link PdlDiag}).  May be null.
+	 * @throws IOException
 	 */
 	public void parse(Reader in, String filename) throws IOException {
 		try {
@@ -52,6 +78,13 @@ public class PdlParser {
 		}
 	}
 
+	/*
+	 * Grammar:
+	 * 
+	 * block = (assignment | conditional_block)*
+	 * 
+	 * conditional_block = "if" "(" expression ")" "{" block* "}"
+	 */
 	private void parseBlock(boolean top) throws IOException {
 		int t;
 		while ((t = tokenizer.nextToken()) != Tokenizer.EOF) {
